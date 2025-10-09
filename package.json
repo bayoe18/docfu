@@ -1,0 +1,90 @@
+{
+  "name": "docfu",
+  "version": "0.1.0",
+  "description": "Build professional documentation sites from markdown with zero configuration",
+  "keywords": [
+    "astro",
+    "cli",
+    "docs",
+    "documentation",
+    "documentation-generator",
+    "documentation-tool",
+    "markdoc",
+    "markdown",
+    "markdown-to-html",
+    "mdx",
+    "ssg",
+    "starlight",
+    "static-site-generator"
+  ],
+  "homepage": "https://github.com/hopsoft/docfu#readme",
+  "bugs": {
+    "url": "https://github.com/hopsoft/docfu/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hopsoft/docfu.git"
+  },
+  "license": "MIT",
+  "author": "Nathan Hopkins <natehop@gmail.com> (https://github.com/hopsoft)",
+  "type": "module",
+  "bin": {
+    "docfu": "./bin/docfu"
+  },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "astro.config.mjs",
+    "bin/",
+    "docfu.example.yml",
+    "markdoc.config.mjs",
+    "scripts/",
+    "src/",
+    "tsconfig.json"
+  ],
+  "scripts": {
+    "build": "echo 'DocFu is ready for distribution (no build step required)'",
+    "format": "npm run toc && prettier --write ./bin ./public/**/*.js ./src ./scripts ./test *.js *.json *.md *.mjs *.yml",
+    "lint": "prettier --check ./bin ./public/**/*.js ./src ./scripts ./test *.js *.json *.md *.mjs *.yml",
+    "test": "vitest run",
+    "toc": "npx markdown-toc -i --maxdepth 2 README.md"
+  },
+  "dependencies": {
+    "@astrojs/markdoc": "0.15.8",
+    "@astrojs/starlight": "0.36.0",
+    "@astrojs/starlight-markdoc": "0.5.0",
+    "@inquirer/prompts": "7.8.6",
+    "astro": "5.14.3",
+    "astro-mermaid": "1.1.0",
+    "chalk": "5.6.2",
+    "chokidar": "4.0.3",
+    "commander": "14.0.1",
+    "cross-spawn": "^7.0.6",
+    "del": "8.0.1",
+    "glob": "11.0.3",
+    "http-server": "14.1.1",
+    "js-yaml": "4.1.0",
+    "minimist": "1.2.8",
+    "remark-frontmatter": "5.0.0",
+    "remark-parse": "11.0.0",
+    "remark-remove": "1.0.0",
+    "remark-stringify": "11.0.0",
+    "sharp": "0.34.4",
+    "starlight-github-alerts": "0.1.0",
+    "starlight-heading-badges": "0.6.0",
+    "starlight-llms-txt": "0.6.0",
+    "starlight-theme-nova": "0.9.5",
+    "unified": "11.0.5",
+    "unist-util-visit": "5.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "dotenv": "^17.2.2",
+    "prettier": "^3.6.2",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10"
+  }
+}

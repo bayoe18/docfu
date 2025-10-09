@@ -1,0 +1,5 @@
+site:
+  name: Custom Components Test
+  url: https://example.com
+
+components: components

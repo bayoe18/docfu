@@ -1,0 +1,102 @@
+# ==============================================================================
+# DocFu Configuration
+# ==============================================================================
+# Place docfu.yml files at the root of your documentation source directory
+# or any subdirectory.
+#
+# Configuration sections:
+# - site: Site name, URL, and theme (required in root docfu.yml)
+# - workspace: Build workspace directory (default: .docfu/workspace)
+# - dist: Build output directory (default: .docfu/dist)
+# - assets: Static assets directory (default: assets)
+# - components: Custom components directory (default: components)
+# - exclude: Files/directories to omit from processing
+# - unlisted: Files/directories to exclude from search (but still build)
+# - sidebar: Navigation structure (auto-generated if omitted)
+#
+# Hierarchical configuration:
+# - docfu.yml files can exist in any directory
+# - Configs are processed in alphabetical order
+# - More specific configurations override less specific ones
+# - Avoid duplicate configuration entries to prevent conflicts
+# ==============================================================================
+
+# Site Configuration (REQUIRED, configure in root docfu.yml)
+site:
+  name: Documentation
+  url: https://docs.example.com
+  theme: nova # OPTIONAL - 'nova' (default, modern) or 'starlight' (classic)
+
+# Temporary workspace for processing (OPTIONAL, configure in root docfu.yml)
+# Defaults to '<source>/.docfu/workspace' if not specified
+workspace: .docfu/workspace
+
+# Final build output directory (OPTIONAL, configure in root docfu.yml)
+dist: .docfu/dist
+
+# Static assets directory in source (OPTIONAL, configure in root docfu.yml)
+# Images, fonts, CSS files, and other static files are bundled into the final site
+# CSS files: Auto-discovered and loaded (alphabetically, after DocFu's base styles)
+# In markdown: reference with relative paths (e.g., ![Logo](assets/images/logo.png))
+# In final site: accessible at root-relative URLs (e.g., /images/logo.png)
+# Defaults to '<source>/assets' if not specified
+assets: assets
+
+# Custom components directory in source (OPTIONAL, configure in root docfu.yml)
+# Astro components for use in markdown files (auto-imported for MDX, registered as tags for Markdoc)
+# Defaults to '<source>/components' if not specified
+components: components
+
+# Files/directories to exclude from processing (OPTIONAL, configure anywhere)
+# Files matching these patterns are not processed or built at all
+# Supports: file paths, directory paths, glob patterns (*, ?, [abc])
+exclude:
+  - archive
+  - backup
+  - tmp
+
+# Files/directories to exclude from search index (OPTIONAL, configure anywhere)
+# Files matching these patterns are built and accessible via direct link,
+# but excluded from search results (pagefind: false added to frontmatter)
+# Supports: file paths, directory paths, glob patterns (*, ?, [abc])
+unlisted:
+  - drafts
+
+# Sidebar navigation structure (OPTIONAL, configure anywhere)
+# - Labels come from page frontmatter title or filename (title-cased)
+# - Same file can appear in multiple groups
+# - Supports both grouped and ungrouped items
+# - Omit sidebar config to auto-generate from content structure
+sidebar:
+  # Ungrouped items appear at sidebar root
+  - file: index.md
+    label: Home
+#   - group: Getting Started
+#     items:
+#       - quickstart.md
+#       - file: installation.md
+#         badge: New
+#
+#   # Same page can appear in multiple groups
+#   - group: Guides
+#     items:
+#       - file: quickstart.md
+#         badge:
+#           label: popular
+#           variant: tip
+#       - guides/basics.md
+#       - file: guides/advanced.md
+#         badge: Advanced
+#
+#   # Auto-generate from directory
+#   - group: API Endpoints
+#     directory: api/endpoints/
+#
+#   # Collapsed group (starts closed)
+#   - group: Advanced Topics
+#     collapsed: true
+#     items:
+#       - advanced/performance.md
+#       - advanced/security.md
+#       - file: advanced/optimization.md
+#         badge: Beta

@@ -1,0 +1,39 @@
+/* DocFu custom styles */
+
+/* Import fonts from Bunny Fonts */
+@import url('https://fonts.bunny.net/css?family=ibm-plex-serif:400,400i,500,600,700');
+@import url('https://fonts.bunny.net/css?family=jetbrains-mono:400,400i,500,500i,700,700i');
+
+/* Apply fonts */
+:root {
+  /* Prose/body text */
+  --sl-font: 'IBM Plex Serif', Georgia, serif;
+
+  /* Code elements */
+  --sl-font-mono:
+    'JetBrains Mono', ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+}
+
+/* Use monospace font for badges (supplement Starlight's defaults) */
+.sl-badge {
+  font-family: var(--sl-font-mono);
+  font-weight: 500;
+  transform: scale(0.875) translateY(-0.05em);
+  transform-origin: center;
+}
+
+h1 .sl-badge,
+h2 .sl-badge,
+h3 .sl-badge,
+h4 .sl-badge,
+h5 .sl-badge,
+h6 .sl-badge {
+  transform: scale(0.8) translateY(-0.2em);
+}
+
+/* DocFu utility classes (tailwindcss conventions) */
+.inline {
+  display: inline;
+  vertical-align: top;
+  transform: translateY(0.375em);
+}

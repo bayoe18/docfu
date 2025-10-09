@@ -1,0 +1,28 @@
+---
+// Custom Header component that overrides Starlight's default Header
+---
+<header class="custom-header">
+  <div class="custom-header-content">
+    <h1>Custom Header Override</h1>
+    <p>This replaces Starlight's default header</p>
+  </div>
+</header>
+
+<style>
+  .custom-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .custom-header-content h1 {
+    margin: 0;
+    font-size: 2rem;
+  }
+
+  .custom-header-content p {
+    margin: 0.5rem 0 0;
+    opacity: 0.9;
+  }
+</style>

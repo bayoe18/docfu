@@ -1,0 +1,27 @@
+---
+title: Markdoc Components Test
+---
+
+# Markdoc Components Test
+
+This fixture tests custom components in Markdoc (.mdoc) files.
+
+{% alertbox type="info" %}
+This is an info alert using the AlertBox component.
+{% /alertbox %}
+
+{% alertbox type="warning" %}
+This is a warning alert!
+{% /alertbox %}
+
+{% callout title="Important Note" %}
+This is a callout with custom content using the Callout component.
+{% /callout %}
+
+## How it works
+
+Custom components are:
+1. Discovered from the `components/` directory
+2. Filtered (Starlight overrides excluded)
+3. Auto-registered in generated `markdoc.config.mjs`
+4. Available as Markdoc tags (lowercase names)

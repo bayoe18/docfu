@@ -1,0 +1,4 @@
+site:
+  name: Theme Nova Test
+  url: https://test.example.com
+  theme: nova

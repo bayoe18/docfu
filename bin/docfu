@@ -1,0 +1,106 @@
+#!/usr/bin/env node
+
+/**
+ * DocFu CLI
+ * Professional-grade documentation site generator
+ */
+
+import {readFileSync} from 'fs'
+import {fileURLToPath} from 'url'
+import {dirname, join} from 'path'
+import {Command} from 'commander'
+import initCommand from '../scripts/cli/commands/init.js'
+import prepareCommand from '../scripts/cli/commands/prepare.js'
+import buildCommand from '../scripts/cli/commands/build.js'
+import previewCommand from '../scripts/cli/commands/preview.js'
+import theme from '../scripts/cli/theme.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf-8'))
+
+// Create the main program
+const program = new Command()
+
+program
+  .name('docfu')
+  .description('Generate production-ready documentation websites from markdown')
+  .version(packageJson.version, '-v, --version', 'output version number')
+  .usage('[options] <source>')
+
+// Configure help styling
+program.configureHelp({
+  sortOptions: true,
+  styleArgumentDescription: theme.muted,
+  styleArgumentTerm: theme.secondary,
+  styleCommandTerm: theme.command,
+  styleOptionDescription: theme.muted,
+  styleOptionTerm: theme.secondary,
+  styleSubcommandDescription: theme.muted,
+  styleSubcommandTerm: theme.command,
+  styleTitle: theme.primary,
+})
+
+// Configure error output styling
+program.configureOutput({
+  outputError: (str, write) => write(theme.danger(str)),
+})
+
+// Init command - create docfu.yml configuration
+program
+  .command('init')
+  .description('Initialize DocFu configuration')
+  .argument('[source]', 'path to markdown docs')
+  .option('-w, --workspace <path>', 'workspace directory (default: .docfu/workspace)')
+  .option('-d, --dist <path>', 'build output directory (default: .docfu/dist)')
+  .option('-y, --yes', 'skip confirmation prompts')
+  .action(async (source, options) => initCommand(source, options, packageJson))
+
+// Prepare command - process docs only (no build)
+program
+  .command('prepare')
+  .description('Prepare documents for build')
+  .argument('<source>', 'path to markdown docs')
+  .option('-w, --workspace <path>', 'workspace directory (default: .docfu/workspace)')
+  .option('-d, --dist <path>', 'build output directory (default: .docfu/dist)')
+  .action(async (source, options) => prepareCommand(source, options, packageJson))
+
+// Build command - prepare and build static site (default)
+program
+  .command('build', {isDefault: true})
+  .description('Build documentation site (default)')
+  .argument('<source>', 'path to markdown docs')
+  .option('-w, --workspace <path>', 'workspace directory (default: .docfu/workspace)')
+  .option('-d, --dist <path>', 'build output directory (default: .docfu/dist)')
+  .option('--dry-run', 'verify configuration without building')
+  .action(async (source, options) => buildCommand(source, options, packageJson))
+
+// Preview command - prepare, build, and serve locally
+program
+  .command('preview')
+  .description('Preview documentation site locally')
+  .argument('<source>', 'path to markdown docs')
+  .option('-w, --workspace <path>', 'workspace directory (default: .docfu/workspace)')
+  .option('-d, --dist <path>', 'build output directory (default: .docfu/dist)')
+  .option('-p, --port <number>', 'preview server port (default: 4321)', '4321')
+  .option('--watch', 'watch for changes and rebuild')
+  .action(async (source, options) => previewCommand(source, options, packageJson))
+
+// Add help examples
+program.addHelpText(
+  'after',
+  `
+${theme.primary('Examples:')}
+  ${theme.muted('$')} docfu ./docs
+  ${theme.muted('$')} docfu prepare ./docs
+  ${theme.muted('$')} docfu preview ./my-docs --port 3000
+
+${theme.primary('Environment Variables:')}
+  ${theme.key('DOCFU_SOURCE')}      ${theme.muted('Source markdown directory')}
+  ${theme.key('DOCFU_WORKSPACE')}   ${theme.muted('Workspace directory (default: .docfu/workspace)')}
+  ${theme.key('DOCFU_DIST')}        ${theme.muted('Build output directory (default: .docfu/dist)')}
+`
+)
+
+// Parse and execute
+program.parse()

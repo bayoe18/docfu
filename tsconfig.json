@@ -1,0 +1,5 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "include": ["src/**/*", "*.mjs"],
+  "exclude": ["dist", ".docfu", "node_modules", "test"]
+}

@@ -1,0 +1,31 @@
+---
+interface Props {
+  title: string
+}
+
+const { title } = Astro.props
+---
+<div class="custom-card">
+  <h3>{title}</h3>
+  <div class="custom-card-content">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .custom-card {
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+  }
+
+  .custom-card h3 {
+    margin-top: 0;
+    color: #333;
+  }
+
+  .custom-card-content {
+    color: #666;
+  }
+</style>

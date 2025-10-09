@@ -1,0 +1,11 @@
+---
+import {Code} from '@astrojs/starlight/components'
+
+const {code, lang, ...rest} = Astro.props
+---
+
+{lang === 'mermaid' ? (
+  <pre class="mermaid" set:html={code} />
+) : (
+  <Code code={code} lang={lang} {...rest} />
+)}

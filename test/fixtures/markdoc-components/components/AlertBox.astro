@@ -1,0 +1,35 @@
+---
+interface Props {
+  type?: 'info' | 'warning' | 'error' | 'success'
+}
+
+const { type = 'info' } = Astro.props
+---
+
+<div class={`alert alert-${type}`}>
+  <slot />
+</div>
+
+<style>
+  .alert {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+  }
+  .alert-info {
+    background: #e3f2fd;
+    border-left: 4px solid #2196f3;
+  }
+  .alert-warning {
+    background: #fff3e0;
+    border-left: 4px solid #ff9800;
+  }
+  .alert-error {
+    background: #ffebee;
+    border-left: 4px solid #f44336;
+  }
+  .alert-success {
+    background: #e8f5e9;
+    border-left: 4px solid #4caf50;
+  }
+</style>

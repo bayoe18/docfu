@@ -1,0 +1,13 @@
+site:
+  name: Test Docs
+  url: https://test.example.com
+
+# Exclude patterns to test
+exclude:
+  - drafts # Directory pattern
+  - archive # Directory pattern
+  - internal # Directory pattern
+  - temp-* # Glob pattern (prefix)
+  - '*-draft.md' # Glob pattern (suffix)
+  - '*.tmp.md' # Glob pattern (extension)
+  - specific-file.md # Specific file

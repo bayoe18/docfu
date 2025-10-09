@@ -1,0 +1,4 @@
+site:
+  name: Theme Starlight Test
+  url: https://test.example.com
+  theme: starlight
