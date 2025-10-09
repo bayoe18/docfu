@@ -35,6 +35,7 @@
     "bin/",
     "docfu.example.yml",
     "markdoc.config.mjs",
+    "public/",
     "scripts/",
     "src/",
     "tsconfig.json"
