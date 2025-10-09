@@ -874,11 +874,12 @@ npm install
 npm test
 ```
 
-### Deployment
+<details>
+<summary>Deployment</summary>
 
-Publishing new versions to npm requires the following steps:
+Publishing new versions to npm requires the following steps.
 
-1. Format and test:
+1. Format and test
 
    ```bash
    npm run format
@@ -887,7 +888,7 @@ Publishing new versions to npm requires the following steps:
 
 2. Commit changes
 
-3. Update version:
+3. Update version
 
    ```bash
    # For bug fixes
@@ -902,28 +903,30 @@ Publishing new versions to npm requires the following steps:
 
    _This updates `package.json` and creates a git tag automatically._
 
-   Alt (manual tag):
+   Alt (manual tag)
 
    ```bash
    # First: Update version in package.json and commit
    git tag -a vX.X.X -m "Release vX.X.X"
    ```
 
-4. Push changes and tags:
+4. Push changes and tags
 
    ```bash
    git push [REMOTE] && git push --tags [REMOTE]
    ```
 
-5. Publish to npm:
+5. Publish to npm
 
    ```bash
    npm publish
    ```
 
-6. Create GitHub release (optional):
+6. Create GitHub release (optional)
 
    Visit the [releases page](https://github.com/hopsoft/docfu/releases) and create a new release from the version tag with release notes.
+
+</details>
 
 ## License
 
