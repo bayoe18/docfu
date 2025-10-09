@@ -793,8 +793,10 @@ Inspecting these files helps diagnose issues with syntax detection, component im
 
 ```bash
 npx docfu prepare /path/to/markdown
-ls -la /path/to/markdown/.docfu/workspace/
+ls -la .docfu/workspace/
 ```
+
+_Note: `.docfu` is created in the current working directory where `npx docfu` is executed._
 
 **Common troubleshooting scenarios:**
 

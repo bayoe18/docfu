@@ -28,10 +28,11 @@ site:
   theme: nova # OPTIONAL - 'nova' (default, modern) or 'starlight' (classic)
 
 # Temporary workspace for processing (OPTIONAL, configure in root docfu.yml)
-# Defaults to '<source>/.docfu/workspace' if not specified
+# Defaults to '.docfu/workspace' (relative to current working directory) if not specified
 workspace: .docfu/workspace
 
 # Final build output directory (OPTIONAL, configure in root docfu.yml)
+# Defaults to '.docfu/dist' (relative to current working directory) if not specified
 dist: .docfu/dist
 
 # Static assets directory in source (OPTIONAL, configure in root docfu.yml)
