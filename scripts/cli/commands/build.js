@@ -2,7 +2,7 @@ import {fileURLToPath} from 'url'
 import {dirname, join, resolve} from 'path'
 import {existsSync} from 'fs'
 import {mkdir, copyFile, cp, symlink} from 'fs/promises'
-import {getResolvedPaths, setEnvVars, runCommand, resolveNodeModules} from '../utils.js'
+import {getResolvedPaths, setEnvVars, runCommand, resolveBinary, resolveNodeModules} from '../utils.js'
 import {processDocuments} from '../../lib/prepare.js'
 import theme from '../theme.js'
 
@@ -89,20 +89,21 @@ export default async function buildCommand(source, options, packageJson) {
     console.log()
     console.log(theme.success('✓ Documentation processed successfully'))
 
-    // Resolve node_modules location (handles npm hoisting for npx)
-    const nodeModules = resolveNodeModules('astro', import.meta.url)
+    // Resolve astro binary (handles all package managers: npm, pnpm, Yarn PnP, Bun)
+    const astroBin = await resolveBinary('astro', import.meta.url)
 
-    // Create symlink to node_modules in workspace
-    const workspaceNodeModules = join(paths.workspace, 'node_modules')
-    if (!existsSync(workspaceNodeModules)) {
-      await symlink(nodeModules, workspaceNodeModules, 'dir')
+    // Create symlink to node_modules in workspace (skip for Yarn PnP)
+    if (!process.versions.pnp) {
+      const nodeModules = resolveNodeModules('astro', import.meta.url)
+      const workspaceNodeModules = join(paths.workspace, 'node_modules')
+      if (!existsSync(workspaceNodeModules)) {
+        await symlink(nodeModules, workspaceNodeModules, 'dir')
+      }
     }
 
     console.log()
     console.log(theme.info('Building site...'))
 
-    // Run astro from resolved node_modules
-    const astroBin = join(nodeModules, '.bin/astro')
     await runCommand(astroBin, ['build'], {
       cwd: paths.workspace,
     })

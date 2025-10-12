@@ -1,7 +1,7 @@
 import {join} from 'path'
 import spawn from 'cross-spawn'
 import chokidar from 'chokidar'
-import {getResolvedPaths, resolveNodeModules} from '../utils.js'
+import {getResolvedPaths, resolveBinary} from '../utils.js'
 import buildCommand from './build.js'
 import theme from '../theme.js'
 
@@ -37,9 +37,8 @@ export default async function previewCommand(source, options, packageJson) {
     console.log(theme.muted('   Press Ctrl+C to stop'))
     console.log()
 
-    // Resolve node_modules location
-    const nodeModules = resolveNodeModules('http-server', import.meta.url)
-    const httpServerBin = join(nodeModules, '.bin/http-server')
+    // Resolve http-server binary (handles all package managers: npm, pnpm, Yarn PnP, Bun)
+    const httpServerBin = await resolveBinary('http-server', import.meta.url)
 
     // Spawn http-server as child process (non-blocking if watching)
     const server = spawn(httpServerBin, [paths.dist, '-p', options.port, '-c-1', '-o'], {

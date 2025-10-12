@@ -3,6 +3,7 @@ import {existsSync, readFileSync} from 'fs'
 import {homedir} from 'os'
 import {dirname, join, resolve} from 'path'
 import {fileURLToPath} from 'url'
+import {detect} from 'detect-package-manager'
 import yaml from 'js-yaml'
 import theme from './theme.js'
 
@@ -39,8 +40,73 @@ export function resolveNodeModules(binaryName, importMetaUrl) {
   const parentNodeModules = resolve(packageRoot, '..')
   if (existsSync(join(parentNodeModules, '.bin', binaryName))) return parentNodeModules
 
-  // Fall back to local node_modules
   return join(packageRoot, 'node_modules')
+}
+
+/**
+ * Resolve binary path for any package manager (npm, pnpm, Yarn Classic, Yarn PnP, Bun)
+ * Detects package manager and uses appropriate resolution strategy
+ * @param {string} packageName - Name of the package containing the binary (e.g., 'astro', 'http-server')
+ * @param {string} importMetaUrl - import.meta.url from calling module
+ * @returns {Promise<string>} Absolute path to the binary executable
+ * @throws {Error} If binary cannot be resolved
+ * @example
+ * const astroBin = await resolveBinary('astro', import.meta.url)
+ * await runCommand(astroBin, ['build'], {cwd: workspace})
+ */
+export async function resolveBinary(packageName, importMetaUrl) {
+  // Check for Yarn PnP mode
+  if (process.versions.pnp) {
+    try {
+      // Yarn PnP doesn't create .bin directories - use pnpapi to resolve
+      const pnpapi = await import('pnpapi')
+
+      const packageJsonPath = pnpapi.resolveToUnqualified(`${packageName}/package.json`, process.cwd())
+      const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
+
+      // Get binary path from package.json bin field
+      let binaryPath
+      if (typeof packageJson.bin === 'string') {
+        binaryPath = packageJson.bin
+      } else if (typeof packageJson.bin === 'object') {
+        // bin field can be an object with multiple binaries
+        binaryPath = packageJson.bin[packageName] || Object.values(packageJson.bin)[0]
+      }
+
+      if (!binaryPath) {
+        throw new Error(`Package ${packageName} does not expose a binary`)
+      }
+
+      const packageDir = dirname(packageJsonPath)
+      const resolvedPath = resolve(packageDir, binaryPath)
+
+      if (!existsSync(resolvedPath)) {
+        throw new Error(`Binary not found at ${resolvedPath}`)
+      }
+
+      return resolvedPath
+    } catch (error) {
+      throw new Error(
+        `Failed to resolve binary '${packageName}' in Yarn PnP mode: ${error.message}\n` +
+          `Hint: Ensure ${packageName} is listed in your dependencies.`
+      )
+    }
+  }
+
+  // For npm, pnpm, Yarn Classic, and Bun - use traditional .bin resolution
+  const nodeModules = resolveNodeModules(packageName, importMetaUrl)
+  const binaryPath = join(nodeModules, '.bin', packageName)
+
+  if (!existsSync(binaryPath)) {
+    const pm = await detect().catch(() => 'npm')
+    throw new Error(
+      `Binary '${packageName}' not found at ${binaryPath}\n` +
+        `Package manager: ${pm}\n` +
+        `Hint: Ensure ${packageName} is listed in your dependencies and run '${pm} install'.`
+    )
+  }
+
+  return binaryPath
 }
 
 /**
