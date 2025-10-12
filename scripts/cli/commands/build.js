@@ -101,8 +101,9 @@ export default async function buildCommand(source, options, packageJson) {
     console.log()
     console.log(theme.info('Building site...'))
 
-    // Run astro from symlinked node_modules
-    const astroBin = join(workspaceNodeModules, '.bin/astro')
+    // Run astro directly from DocFu's node_modules (not from symlinked location)
+    // The symlink exists for module resolution, but we reference the binary from source
+    const astroBin = join(docfuNodeModules, '.bin/astro')
     await runCommand(astroBin, ['build'], {
       cwd: paths.workspace,
     })
