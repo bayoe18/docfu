@@ -2,6 +2,7 @@ import spawn from 'cross-spawn'
 import {existsSync, readFileSync} from 'fs'
 import {homedir} from 'os'
 import {dirname, join, resolve} from 'path'
+import {fileURLToPath} from 'url'
 import yaml from 'js-yaml'
 import theme from './theme.js'
 
@@ -18,6 +19,28 @@ export function expandTilde(filepath) {
   if (filepath === '~') return homedir()
   if (filepath.startsWith('~/')) return join(homedir(), filepath.slice(2))
   return filepath
+}
+
+/**
+ * Resolve node_modules directory that contains a specific binary
+ * Handles npm hoisting where dependencies may be in parent node_modules
+ * @param {string} binaryName - Name of the binary to locate (e.g., 'astro', 'http-server')
+ * @param {string} importMetaUrl - import.meta.url from calling module
+ * @returns {string} Path to node_modules directory containing the binary
+ * @example
+ * const nodeModules = resolveNodeModules('astro', import.meta.url)
+ * const astroBin = join(nodeModules, '.bin/astro')
+ */
+export function resolveNodeModules(binaryName, importMetaUrl) {
+  const __dirname = dirname(fileURLToPath(importMetaUrl))
+  const packageRoot = resolve(__dirname, '../../..')
+
+  // Check parent node_modules first (npm hoists dependencies when using npx)
+  const parentNodeModules = resolve(packageRoot, '..')
+  if (existsSync(join(parentNodeModules, '.bin', binaryName))) return parentNodeModules
+
+  // Fall back to local node_modules
+  return join(packageRoot, 'node_modules')
 }
 
 /**

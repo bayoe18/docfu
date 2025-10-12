@@ -2,7 +2,7 @@ import {fileURLToPath} from 'url'
 import {dirname, join, resolve} from 'path'
 import {existsSync} from 'fs'
 import {mkdir, copyFile, cp, symlink} from 'fs/promises'
-import {getResolvedPaths, setEnvVars, runCommand} from '../utils.js'
+import {getResolvedPaths, setEnvVars, runCommand, resolveNodeModules} from '../utils.js'
 import {processDocuments} from '../../lib/prepare.js'
 import theme from '../theme.js'
 
@@ -10,13 +10,10 @@ import theme from '../theme.js'
  * Setup workspace as full Astro/Starlight project
  * Copies DocFu project files to workspace root
  * @param {string} workspace - Path to workspace directory
+ * @param {string} packageRoot - Path to DocFu package root
  * @returns {Promise<void>}
  */
-async function setupWorkspaceProject(workspace) {
-  // Resolve package files relative to DocFu installation
-  const __dirname = dirname(fileURLToPath(import.meta.url))
-  const packageRoot = resolve(__dirname, '../../..')
-
+async function setupWorkspaceProject(workspace, packageRoot) {
   // Copy base src/ structure from DocFu
   const src = join(packageRoot, 'src')
   const workspaceSrc = join(workspace, 'src')
@@ -82,28 +79,30 @@ export default async function buildCommand(source, options, packageJson) {
     const success = await processDocuments(paths.source, paths.root, options)
     if (!success) throw new Error('Processing failed')
 
+    // Get package root for copying project files
+    const __dirname = dirname(fileURLToPath(import.meta.url))
+    const packageRoot = resolve(__dirname, '../../..')
+
     // Setup workspace as full Astro/Starlight project
-    await setupWorkspaceProject(paths.workspace)
+    await setupWorkspaceProject(paths.workspace, packageRoot)
 
     console.log()
     console.log(theme.success('✓ Documentation processed successfully'))
 
-    // Symlink workspace/node_modules to DocFu's own node_modules
-    const __dirname = dirname(fileURLToPath(import.meta.url))
-    const docfuRoot = resolve(__dirname, '../../..')
-    const docfuNodeModules = join(docfuRoot, 'node_modules')
+    // Resolve node_modules location (handles npm hoisting for npx)
+    const nodeModules = resolveNodeModules('astro', import.meta.url)
 
+    // Create symlink to node_modules in workspace
     const workspaceNodeModules = join(paths.workspace, 'node_modules')
     if (!existsSync(workspaceNodeModules)) {
-      await symlink(docfuNodeModules, workspaceNodeModules, 'dir')
+      await symlink(nodeModules, workspaceNodeModules, 'dir')
     }
 
     console.log()
     console.log(theme.info('Building site...'))
 
-    // Run astro directly from DocFu's node_modules (not from symlinked location)
-    // The symlink exists for module resolution, but we reference the binary from source
-    const astroBin = join(docfuNodeModules, '.bin/astro')
+    // Run astro from resolved node_modules
+    const astroBin = join(nodeModules, '.bin/astro')
     await runCommand(astroBin, ['build'], {
       cwd: paths.workspace,
     })

@@ -1,6 +1,6 @@
 {
   "name": "docfu",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Build professional documentation sites from markdown with zero configuration",
   "keywords": [
     "docs",

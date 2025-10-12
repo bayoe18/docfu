@@ -1,8 +1,7 @@
-import {fileURLToPath} from 'url'
-import {dirname, join, resolve} from 'path'
+import {join} from 'path'
 import spawn from 'cross-spawn'
 import chokidar from 'chokidar'
-import {getResolvedPaths} from '../utils.js'
+import {getResolvedPaths, resolveNodeModules} from '../utils.js'
 import buildCommand from './build.js'
 import theme from '../theme.js'
 
@@ -38,10 +37,9 @@ export default async function previewCommand(source, options, packageJson) {
     console.log(theme.muted('   Press Ctrl+C to stop'))
     console.log()
 
-    // Run http-server from package's node_modules, not via npx
-    const __dirname = dirname(fileURLToPath(import.meta.url))
-    const packageRoot = resolve(__dirname, '../../..')
-    const httpServerBin = join(packageRoot, 'node_modules/.bin/http-server')
+    // Resolve node_modules location
+    const nodeModules = resolveNodeModules('http-server', import.meta.url)
+    const httpServerBin = join(nodeModules, '.bin/http-server')
 
     // Spawn http-server as child process (non-blocking if watching)
     const server = spawn(httpServerBin, [paths.dist, '-p', options.port, '-c-1', '-o'], {
