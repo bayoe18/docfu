@@ -13,12 +13,12 @@ const __dirname = dirname(__filename)
  * Initialize DocFu configuration with interactive prompts
  * Creates a customized docfu.yml file in the source directory
  * @param {string} source - Optional source directory path (if not provided, prompts user)
- * @param {Object} options - Command options (workspace, dist, yes)
+ * @param {Object} options - Command options (yes)
  * @param {Object} packageJson - Package.json object containing version info
  * @returns {Promise<void>}
  * @example
  * await initCommand('./docs', {}, packageJson)
- * await initCommand('./docs', {workspace: '.workspace', dist: '.dist', yes: true}, packageJson)
+ * await initCommand('./docs', {yes: true}, packageJson)
  */
 export default async function initCommand(source, options = {}, packageJson) {
   try {
@@ -33,24 +33,6 @@ export default async function initCommand(source, options = {}, packageJson) {
           default: './docs',
         }))
     )
-
-    const workspaceDir =
-      options.workspace ||
-      (options.yes
-        ? '.docfu/workspace'
-        : await input({
-            message: 'Workspace directory?',
-            default: '.docfu/workspace',
-          }))
-
-    const distDir =
-      options.dist ||
-      (options.yes
-        ? '.docfu/dist'
-        : await input({
-            message: 'Build output directory?',
-            default: '.docfu/dist',
-          }))
 
     const configPath = join(resolve(sourceDir), 'docfu.yml')
     if (existsSync(configPath) && !options.yes) {
@@ -68,11 +50,7 @@ export default async function initCommand(source, options = {}, packageJson) {
     }
 
     const templatePath = join(__dirname, '../../../docfu.example.yml')
-    let template = readFileSync(templatePath, 'utf-8')
-
-    template = template
-      .replace('workspace: .docfu/workspace', `workspace: ${workspaceDir}`)
-      .replace('dist: .docfu/dist', `dist: ${distDir}`)
+    const template = readFileSync(templatePath, 'utf-8')
 
     writeFileSync(configPath, template, 'utf-8')
 

@@ -23,20 +23,17 @@ describe('Custom CSS Auto-Discovery', () => {
     mkdirSync(join(paths.source, 'assets'), {recursive: true})
     writeFileSync(join(paths.source, 'assets', 'custom.css'), '.custom { color: blue; }')
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed with custom CSS')
 
-    // Verify CSS copied to workspace
-    assert.ok(existsSync(join(paths.workspace, 'assets', 'custom.css')), 'CSS should be in workspace')
+    assert.ok(existsSync(join(paths.workspace, 'public', 'assets', 'custom.css')), 'CSS should be in workspace')
 
-    // Verify manifest contains CSS entry
-    const manifest = JSON.parse(readFileSync(join(paths.workspace, 'manifest.json'), 'utf-8'))
+    const manifest = JSON.parse(readFileSync(join(paths.root, 'manifest.json'), 'utf-8'))
     assert.ok(manifest.css, 'Manifest should have css section')
     assert.strictEqual(manifest.css.items.length, 1, 'Should have 1 CSS file')
     assert.strictEqual(manifest.css.items[0].path, 'assets/custom.css', 'CSS path should be correct')
 
-    // Verify HTML references CSS
     const html = readFileSync(join(paths.dist, 'index.html'), 'utf-8')
     assert.ok(html.includes('custom.css') || html.includes('.css'), 'HTML should reference CSS')
   })
@@ -54,17 +51,15 @@ describe('Custom CSS Auto-Discovery', () => {
     writeFileSync(join(paths.source, 'assets', 'custom.css'), '.custom { color: blue; }')
     writeFileSync(join(paths.source, 'assets', 'theme.css'), '.theme { color: green; }')
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed with multiple CSS files')
 
-    // Verify all CSS files copied to workspace
-    assert.ok(existsSync(join(paths.workspace, 'assets', 'brand.css')), 'brand.css should be in workspace')
-    assert.ok(existsSync(join(paths.workspace, 'assets', 'custom.css')), 'custom.css should be in workspace')
-    assert.ok(existsSync(join(paths.workspace, 'assets', 'theme.css')), 'theme.css should be in workspace')
+    assert.ok(existsSync(join(paths.workspace, 'public', 'assets', 'brand.css')), 'brand.css should be in workspace')
+    assert.ok(existsSync(join(paths.workspace, 'public', 'assets', 'custom.css')), 'custom.css should be in workspace')
+    assert.ok(existsSync(join(paths.workspace, 'public', 'assets', 'theme.css')), 'theme.css should be in workspace')
 
-    // Verify manifest contains all CSS files in alphabetical order
-    const manifest = JSON.parse(readFileSync(join(paths.workspace, 'manifest.json'), 'utf-8'))
+    const manifest = JSON.parse(readFileSync(join(paths.root, 'manifest.json'), 'utf-8'))
     assert.strictEqual(manifest.css.items.length, 3, 'Should have 3 CSS files')
     assert.strictEqual(manifest.css.items[0].path, 'assets/brand.css', 'First should be brand.css')
     assert.strictEqual(manifest.css.items[1].path, 'assets/custom.css', 'Second should be custom.css')
@@ -84,23 +79,21 @@ describe('Custom CSS Auto-Discovery', () => {
     writeFileSync(join(paths.source, 'assets', 'styles', 'custom.css'), '.custom { color: blue; }')
     writeFileSync(join(paths.source, 'assets', 'styles', 'components', 'button.css'), '.button { color: white; }')
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed with nested CSS')
 
-    // Verify nested structure preserved in workspace
-    assert.ok(existsSync(join(paths.workspace, 'assets', 'base.css')), 'base.css should be in workspace')
+    assert.ok(existsSync(join(paths.workspace, 'public', 'assets', 'base.css')), 'base.css should be in workspace')
     assert.ok(
-      existsSync(join(paths.workspace, 'assets', 'styles', 'custom.css')),
+      existsSync(join(paths.workspace, 'public', 'assets', 'styles', 'custom.css')),
       'nested custom.css should be in workspace'
     )
     assert.ok(
-      existsSync(join(paths.workspace, 'assets', 'styles', 'components', 'button.css')),
+      existsSync(join(paths.workspace, 'public', 'assets', 'styles', 'components', 'button.css')),
       'deeply nested button.css should be in workspace'
     )
 
-    // Verify manifest preserves nested paths
-    const manifest = JSON.parse(readFileSync(join(paths.workspace, 'manifest.json'), 'utf-8'))
+    const manifest = JSON.parse(readFileSync(join(paths.root, 'manifest.json'), 'utf-8'))
     assert.strictEqual(manifest.css.items.length, 3, 'Should have 3 CSS files')
     assert.ok(
       manifest.css.items.some(item => item.path === 'assets/base.css'),
@@ -124,19 +117,16 @@ describe('Custom CSS Auto-Discovery', () => {
       'index.md': '# Home\n\nContent without custom CSS',
     })
 
-    // Create assets directory with non-CSS files
     mkdirSync(join(paths.source, 'assets', 'images'), {recursive: true})
     writeFileSync(join(paths.source, 'assets', 'images', 'logo.png'), 'fake-png')
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed without CSS files')
 
-    // Verify manifest doesn't have css section (or has empty items)
-    const manifest = JSON.parse(readFileSync(join(paths.workspace, 'manifest.json'), 'utf-8'))
+    const manifest = JSON.parse(readFileSync(join(paths.root, 'manifest.json'), 'utf-8'))
     assert.ok(!manifest.css || manifest.css.items.length === 0, 'Manifest should not have CSS items')
 
-    // Verify HTML still generated correctly
     const html = readFileSync(join(paths.dist, 'index.html'), 'utf-8')
     assert.ok(html.includes('Content without custom CSS'), 'HTML should contain page content')
   })

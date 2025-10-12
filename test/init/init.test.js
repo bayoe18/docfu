@@ -26,24 +26,25 @@ describe('Init Command', () => {
     assert.ok(existsSync(configPath), 'Should create docfu.yml')
 
     const content = await readFile(configPath, 'utf-8')
-    assert.ok(content.includes('workspace: .docfu/workspace'), 'Should use default workspace')
-    assert.ok(content.includes('dist: .docfu/dist'), 'Should use default dist')
     assert.ok(content.includes('site:'), 'Should include site config')
+    assert.ok(content.includes('name: Documentation'), 'Should have site name')
+    assert.ok(content.includes('url: https://docs.example.com'), 'Should have site URL')
   })
 
-  it('should create docfu.yml with custom workspace and dist directories', async () => {
+  it('should create docfu.yml from template', async () => {
     const paths = getTestPaths('init-custom', import.meta.url)
     mkdirSync(paths.source, {recursive: true})
 
-    const {exitCode, stdout} = await runCLI(['init', paths.source, '--workspace', 'custom-ws', '--dist', 'custom-dist'])
+    const {exitCode, stdout} = await runCLI(['init', paths.source, '--yes'])
 
     assert.strictEqual(exitCode, 0, 'Should exit successfully')
     assert.ok(stdout.includes('Created'), 'Should show success message')
 
     const configPath = join(paths.source, 'docfu.yml')
     const content = await readFile(configPath, 'utf-8')
-    assert.ok(content.includes('workspace: custom-ws'), 'Should use custom workspace')
-    assert.ok(content.includes('dist: custom-dist'), 'Should use custom dist')
+    assert.ok(content.includes('# DocFu Configuration'), 'Should include config header')
+    assert.ok(content.includes('assets:'), 'Should include assets config')
+    assert.ok(content.includes('components:'), 'Should include components config')
   })
 
   it('should overwrite existing config with --yes flag', async () => {
@@ -60,29 +61,21 @@ describe('Init Command', () => {
 
     const content = await readFile(configPath, 'utf-8')
     assert.ok(!content.includes('old: value'), 'Should overwrite old config')
-    assert.ok(content.includes('workspace: .docfu/workspace'), 'Should have new config')
+    assert.ok(content.includes('site:'), 'Should have new config')
   })
 
-  it('should handle custom workspace and dist with --yes flag', async () => {
+  it('should handle --yes flag without prompts', async () => {
     const paths = getTestPaths('init-custom-yes', import.meta.url)
     mkdirSync(paths.source, {recursive: true})
 
-    const {exitCode} = await runCLI([
-      'init',
-      paths.source,
-      '--workspace',
-      'custom-workspace',
-      '--dist',
-      'custom-dist',
-      '--yes',
-    ])
+    const {exitCode} = await runCLI(['init', paths.source, '--yes'])
 
     assert.strictEqual(exitCode, 0, 'Should exit successfully')
 
     const configPath = join(paths.source, 'docfu.yml')
     const content = await readFile(configPath, 'utf-8')
-    assert.ok(content.includes('workspace: custom-workspace'), 'Should use custom workspace')
-    assert.ok(content.includes('dist: custom-dist'), 'Should use custom dist')
+    assert.ok(content.includes('site:'), 'Should create config file')
+    assert.ok(content.includes('assets:'), 'Should include assets config')
   })
 
   it('should show help with init --help flag', async () => {
@@ -90,21 +83,21 @@ describe('Init Command', () => {
 
     assert.strictEqual(exitCode, 0, 'Should exit successfully')
     assert.ok(stdout.includes('Initialize DocFu configuration'), 'Should show init description')
-    assert.ok(stdout.includes('--workspace'), 'Should mention workspace option')
-    assert.ok(stdout.includes('--dist'), 'Should mention dist option')
+    assert.ok(stdout.includes('--root'), 'Should mention root option')
     assert.ok(stdout.includes('--yes'), 'Should mention yes option')
   })
 
-  it('should handle relative paths correctly', async () => {
+  it('should create config in specified source directory', async () => {
     const paths = getTestPaths('init-relative', import.meta.url)
     mkdirSync(paths.source, {recursive: true})
 
-    const {exitCode} = await runCLI(['init', paths.source, '--workspace', '../workspace', '--yes'])
+    const {exitCode} = await runCLI(['init', paths.source, '--yes'])
 
     assert.strictEqual(exitCode, 0, 'Should exit successfully')
 
     const configPath = join(paths.source, 'docfu.yml')
+    assert.ok(existsSync(configPath), 'Should create config in source directory')
     const content = await readFile(configPath, 'utf-8')
-    assert.ok(content.includes('workspace: ../workspace'), 'Should preserve relative paths')
+    assert.ok(content.includes('site:'), 'Should have site config')
   })
 })

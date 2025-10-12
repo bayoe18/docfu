@@ -19,37 +19,39 @@ describe('Symlink Cleanup Safety', () => {
     writeFileSync(join(paths.source, 'docfu.yml'), 'site:\n  name: Test Docs\n  url: https://example.com')
     writeFileSync(join(paths.source, 'index.md'), '# Home\n\nTest content')
 
-    // First prepare - creates .docfu/engine/ with symlinked node_modules
-    const {exitCode: exitCode1} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    // First prepare - creates .docfu/workspace/
+    const {exitCode: exitCode1} = await runCLI(['prepare', paths.source, '--root', paths.root])
     assert.strictEqual(exitCode1, 0, 'First prepare should succeed')
 
-    const symlinkPath = join(paths.engine, 'node_modules')
-    assert.ok(existsSync(symlinkPath), 'Symlink should exist in .docfu/engine/')
+    // Manually create symlink to simulate state after build
+    const {symlink} = await import('fs/promises')
+    const actualNodeModules = resolve('node_modules')
+    const symlinkPath = join(paths.workspace, 'node_modules')
+    await symlink(actualNodeModules, symlinkPath, 'dir')
+
+    assert.ok(existsSync(symlinkPath), 'Symlink should exist in .docfu/workspace/')
 
     // Create a marker file in the ACTUAL node_modules (symlink target)
-    // This file should NOT be deleted when we clean .docfu/engine/
-    const actualNodeModules = resolve('node_modules')
-    const markerPath = join(actualNodeModules, '.test-marker-do-not-delete')
-    writeFileSync(markerPath, 'This file should not be deleted when cleaning .docfu/engine/')
+    // This file should NOT be deleted when we clean .docfu/workspace/
+    const marker = join(actualNodeModules, '.test-marker-do-not-delete')
+    writeFileSync(marker, 'This file should not be deleted when cleaning .docfu/workspace/')
 
     const markerThroughSymlink = join(symlinkPath, '.test-marker-do-not-delete')
     assert.ok(existsSync(markerThroughSymlink), 'Marker should be accessible through symlink')
 
-    // Second prepare - should clean .docfu/engine/ and recreate it
+    // Second prepare - should clean .docfu/ and recreate workspace (without symlink)
     // This is the critical test: cleanup must remove symlink without deleting target
-    const {exitCode: exitCode2} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode: exitCode2} = await runCLI(['prepare', paths.source, '--root', paths.root])
     assert.strictEqual(exitCode2, 0, 'Second prepare should succeed')
 
-    assert.ok(existsSync(symlinkPath), 'Symlink should be recreated')
+    assert.ok(!existsSync(symlinkPath), 'Symlink should be removed after cleanup')
 
     assert.ok(existsSync(actualNodeModules), 'Actual node_modules should still exist')
 
-    assert.ok(existsSync(markerPath), 'Marker in actual node_modules should still exist - CRITICAL SAFETY CHECK')
-
-    assert.ok(existsSync(markerThroughSymlink), 'Marker should be accessible through recreated symlink')
+    assert.ok(existsSync(marker), 'Marker in actual node_modules should still exist - CRITICAL SAFETY CHECK')
 
     const fs = await import('fs/promises')
-    await fs.rm(markerPath, {force: true})
+    await fs.rm(marker, {force: true})
   })
 
   it('should handle multiple cleanup cycles without deleting target', async () => {
@@ -60,19 +62,19 @@ describe('Symlink Cleanup Safety', () => {
     writeFileSync(join(paths.source, 'index.md'), '# Test')
 
     const actualNodeModules = resolve('node_modules')
-    const markerPath = join(actualNodeModules, '.test-marker-multiple-cleanups')
-    writeFileSync(markerPath, 'Should survive multiple cleanups')
+    const marker = join(actualNodeModules, '.test-marker-multiple-cleanups')
+    writeFileSync(marker, 'Should survive multiple cleanups')
 
     // Run prepare 3 times - each should clean and recreate
     for (let i = 1; i <= 3; i++) {
-      const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+      const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
       assert.strictEqual(exitCode, 0, `Prepare ${i} should succeed`)
 
-      assert.ok(existsSync(markerPath), `Marker should survive cleanup cycle ${i}`)
+      assert.ok(existsSync(marker), `Marker should survive cleanup cycle ${i}`)
     }
 
     const fs = await import('fs/promises')
-    await fs.rm(markerPath, {force: true})
+    await fs.rm(marker, {force: true})
   })
 
   it('should handle missing node_modules gracefully', async () => {
@@ -85,10 +87,10 @@ describe('Symlink Cleanup Safety', () => {
     // This test verifies prepare works even if node_modules doesn't exist
     // (edge case: running in unusual environment)
     // Should succeed with warning but not crash
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Should succeed even without node_modules')
 
-    assert.ok(existsSync(join(paths.workspace, 'index.md')), 'Should process files')
+    assert.ok(existsSync(join(paths.workspace, 'src/content/docs/index.md')), 'Should process files')
   })
 })

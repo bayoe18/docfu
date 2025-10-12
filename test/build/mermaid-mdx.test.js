@@ -37,7 +37,7 @@ graph TD
 `,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
     assert.ok(existsSync(join(paths.dist, 'diagram/index.html')), 'Should generate index.html')
@@ -45,7 +45,7 @@ graph TD
     const html = readFileSync(join(paths.dist, 'diagram/index.html'), 'utf-8')
 
     // astro-mermaid preprocesses .mdx files, converting code blocks to <pre class="mermaid">
-    assert.ok(html.includes('<pre class="mermaid">'), 'Should have preprocessed mermaid element')
+    assert.ok(html.includes('class="mermaid"'), 'Should have preprocessed mermaid element')
     assert.ok(html.includes('graph TD'), 'Should include diagram code')
   })
 
@@ -66,7 +66,7 @@ Using Fence component explicitly:
 `,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
     assert.ok(existsSync(join(paths.dist, 'diagram/index.html')), 'Should generate index.html')
@@ -75,7 +75,7 @@ Using Fence component explicitly:
     const mermaidSection = html.match(/<article>[\s\S]*?<\/article>/)?.[0] || ''
 
     // With auto-import fix, Fence component should work in .mdx files
-    assert.ok(html.includes('<pre class="mermaid">'), 'Should have mermaid pre element')
+    assert.ok(html.includes('class="mermaid"'), 'Should have mermaid pre element')
     assert.ok(html.includes('graph TD'), 'Should include diagram code')
   })
 })

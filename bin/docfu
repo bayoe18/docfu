@@ -51,8 +51,7 @@ program
   .command('init')
   .description('Initialize DocFu configuration')
   .argument('[source]', 'path to markdown docs')
-  .option('-w, --workspace <path>', 'workspace directory (default: .docfu/workspace)')
-  .option('-d, --dist <path>', 'build output directory (default: .docfu/dist)')
+  .option('-r, --root <path>', 'root directory (default: .docfu)')
   .option('-y, --yes', 'skip confirmation prompts')
   .action(async (source, options) => initCommand(source, options, packageJson))
 
@@ -61,8 +60,8 @@ program
   .command('prepare')
   .description('Prepare documents for build')
   .argument('<source>', 'path to markdown docs')
-  .option('-w, --workspace <path>', 'workspace directory (default: .docfu/workspace)')
-  .option('-d, --dist <path>', 'build output directory (default: .docfu/dist)')
+  .option('-r, --root <path>', 'root directory (default: .docfu)')
+  .option('-y, --yes', 'skip confirmation prompts')
   .action(async (source, options) => prepareCommand(source, options, packageJson))
 
 // Build command - prepare and build static site (default)
@@ -70,8 +69,8 @@ program
   .command('build', {isDefault: true})
   .description('Build documentation site (default)')
   .argument('<source>', 'path to markdown docs')
-  .option('-w, --workspace <path>', 'workspace directory (default: .docfu/workspace)')
-  .option('-d, --dist <path>', 'build output directory (default: .docfu/dist)')
+  .option('-r, --root <path>', 'root directory (default: .docfu)')
+  .option('-y, --yes', 'skip confirmation prompts')
   .option('--dry-run', 'verify configuration without building')
   .action(async (source, options) => buildCommand(source, options, packageJson))
 
@@ -80,8 +79,8 @@ program
   .command('preview')
   .description('Preview documentation site locally')
   .argument('<source>', 'path to markdown docs')
-  .option('-w, --workspace <path>', 'workspace directory (default: .docfu/workspace)')
-  .option('-d, --dist <path>', 'build output directory (default: .docfu/dist)')
+  .option('-r, --root <path>', 'root directory (default: .docfu)')
+  .option('-y, --yes', 'skip confirmation prompts')
   .option('-p, --port <number>', 'preview server port (default: 4321)', '4321')
   .option('--watch', 'watch for changes and rebuild')
   .action(async (source, options) => previewCommand(source, options, packageJson))
@@ -94,11 +93,11 @@ ${theme.primary('Examples:')}
   ${theme.muted('$')} docfu ./docs
   ${theme.muted('$')} docfu prepare ./docs
   ${theme.muted('$')} docfu preview ./my-docs --port 3000
+  ${theme.muted('$')} docfu build ./docs --root /tmp/my-docs
 
 ${theme.primary('Environment Variables:')}
-  ${theme.key('DOCFU_SOURCE')}      ${theme.muted('Source markdown directory')}
-  ${theme.key('DOCFU_WORKSPACE')}   ${theme.muted('Workspace directory (default: .docfu/workspace)')}
-  ${theme.key('DOCFU_DIST')}        ${theme.muted('Build output directory (default: .docfu/dist)')}
+  ${theme.key('DOCFU_SOURCE')}   ${theme.muted('Source markdown directory')}
+  ${theme.key('DOCFU_ROOT')}     ${theme.muted('Root directory (default: .docfu)')}
 `
 )
 

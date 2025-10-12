@@ -36,7 +36,6 @@ export function buildSidebar(manifest, config) {
  * @returns {Array} Starlight sidebar configuration
  */
 function expandExplicitSidebar(sidebarConfig, files) {
-  // Create lookup map for files by path (for matching file references)
   const filesByPath = new Map()
   for (const file of files) {
     // Store by various possible path formats
@@ -49,7 +48,7 @@ function expandExplicitSidebar(sidebarConfig, files) {
   return sidebarConfig.map(entry => {
     // Case 1: Grouped items with directory autogeneration
     if (entry.group && entry.directory) {
-      const dir = entry.directory.replace(/\/$/, '') // Remove trailing slash
+      const dir = entry.directory.replace(/\/$/, '')
       const filesInDir = files.filter(f => f.slug.startsWith(dir + '/') || f.slug === dir)
 
       const result = {
@@ -113,12 +112,10 @@ function processItem(item, filesByPath) {
  * @returns {Object} File object from manifest
  */
 function lookupFile(path, filesByPath) {
-  // Try exact match first
   if (filesByPath.has(path)) {
     return filesByPath.get(path)
   }
 
-  // Try without extension (remove .md, .mdx, .mdoc)
   const pathWithoutExt = path.replace(/\.(md|mdx|mdoc)$/, '')
   if (filesByPath.has(pathWithoutExt)) {
     return filesByPath.get(pathWithoutExt)
@@ -159,15 +156,12 @@ function generateAutoSidebar(files) {
   const sidebar = []
   const groups = new Map()
 
-  // Group files by top-level directory
   for (const file of files) {
     const parts = file.slug.split('/')
 
     if (parts.length === 1) {
-      // Root-level file
       sidebar.push({slug: file.slug, label: file.title})
     } else {
-      // Nested file - group by first directory
       const topDir = parts[0]
       if (!groups.has(topDir)) {
         groups.set(topDir, [])
@@ -176,7 +170,6 @@ function generateAutoSidebar(files) {
     }
   }
 
-  // Add grouped items
   for (const [dir, files] of groups) {
     const label = dir.replace(/[-_]/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
     sidebar.push({

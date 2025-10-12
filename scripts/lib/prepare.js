@@ -7,11 +7,12 @@ import {mkdir, copyFile, readdir, readFile, writeFile, cp, symlink} from 'fs/pro
 import {createInterface} from 'readline'
 import {homedir} from 'os'
 import {fileURLToPath} from 'url'
-import {resolve, join, relative, dirname} from 'path'
+import {resolve, join, relative, dirname, sep} from 'path'
 import {existsSync} from 'fs'
-import {deleteAsync} from 'del'
 import {minimatch} from 'minimatch'
+import {deleteSync} from 'del'
 import * as yaml from 'js-yaml'
+import theme from '../cli/theme.js'
 import {getTitle, parseFrontmatter, ensureTitle, mergeFrontmatterWithHierarchicalConfig} from './frontmatter.js'
 import {process as mdx} from './md2mdx.js'
 import {process as mdoc} from './md2mdoc.js'
@@ -20,8 +21,7 @@ import {ALL_MARKDOWN_EXTENSIONS} from './patterns.js'
 import {discover, getApplicable} from './config.js'
 import {transformReadmeLinks} from './ast.js'
 
-const DEFAULT_WORKSPACE = '.docfu/workspace'
-const DEFAULT_DIST = '.docfu/dist'
+const DEFAULT_ROOT = '.docfu'
 
 /**
  * Expand tilde (~) in file paths to home directory
@@ -91,10 +91,12 @@ const discoverCss = async (path, workspace) => {
 /**
  * Prompt user for confirmation before destructive operation
  * @param {string} message - Confirmation message to display
+ * @param {Object} [options] - Options object
+ * @param {boolean} [options.yes] - Skip confirmation if true
  * @returns {Promise<boolean>} True if user confirmed, false otherwise
  */
-const confirm = message => {
-  if (process.env.CI) return Promise.resolve(true)
+const confirm = (message, options = {}) => {
+  if (process.env.CI || options.yes) return Promise.resolve(true)
 
   const rl = createInterface({
     input: process.stdin,
@@ -110,7 +112,7 @@ const confirm = message => {
 }
 
 /**
- * Check if a path is dangerous to delete (common system directories)
+ * Check if a path is dangerous to delete (critical system directories)
  * This provides an additional safety layer beyond del's built-in protections
  * @param {string} path - Absolute path to check
  * @returns {boolean} True if path is a critical system directory
@@ -118,7 +120,27 @@ const confirm = message => {
 const isDangerousSystemPath = path => {
   const home = homedir()
   const normalizedPath = resolve(path)
-  const dangerous = ['/', home, join(home, 'Documents'), join(home, 'Desktop'), join(home, 'Downloads')]
+
+  const dangerous = [
+    '/', // Root filesystem
+    home, // User home directory
+    join(home, 'Documents'), // User documents
+    join(home, 'Desktop'), // User desktop
+    join(home, 'Downloads'), // User downloads
+    dirname(home), // Parent of home (/Users, /home, C:\Users)
+    '/etc', // Unix: system configuration
+    '/usr', // Unix: user programs and libraries
+    '/bin', // Unix: essential binaries
+    '/sbin', // Unix: system binaries
+    '/var', // Unix: variable data, logs, databases
+    '/Applications', // macOS: applications directory
+    '/System', // macOS: system files
+    '/Library', // macOS: system library
+    'C:\\Windows', // Windows: system directory
+    'C:\\Program Files', // Windows: installed programs
+    'C:\\Program Files (x86)', // Windows: 32-bit programs
+  ]
+
   return dangerous.some(dir => normalizedPath === dir)
 }
 
@@ -213,119 +235,27 @@ async function updatePartialReferences(destination, fileConversionMap) {
 }
 
 /**
- * Setup isolated Astro engine directory for builds
- * Copies src/, config files, and public/ to isolated engine
- * @param {string} engine - Path to Astro engine directory
- * @param {string} workspace - Path to workspace directory
- * @param {Object} config - Master configuration object
- * @returns {Promise<void>}
- */
-async function setupAstroEngine(engine, workspace, config) {
-  // SAFETY: followSymbolicLinks: false ensures symlinks are removed without following them.
-  // This is POSIX-compliant behavior - when fs.promises.rm() encounters a symlink, it
-  // unlinks the symlink without following it.
-  // Reference: Node.js PR #45439 (2023) - fixed to use lstat instead of stat for symlinks.
-  // The node_modules symlink created below will be safely removed without deleting the
-  // actual DocFu dependencies it points to.
-  if (existsSync(engine)) {
-    await deleteAsync(engine, {
-      cwd: process.cwd(),
-      force: false,
-      followSymbolicLinks: false,
-    })
-  }
-  await mkdir(engine, {recursive: true})
-
-  const src = resolve('src')
-  const engineSrc = join(engine, 'src')
-  if (existsSync(src)) {
-    await cp(src, engineSrc, {recursive: true, force: true})
-  }
-
-  const scripts = resolve('scripts')
-  const engineScripts = join(engine, 'scripts')
-  if (existsSync(scripts)) {
-    await cp(scripts, engineScripts, {recursive: true, force: true})
-  }
-
-  const configs = ['astro.config.mjs', 'markdoc.config.mjs', 'tsconfig.json']
-  for (const name of configs) {
-    const source = resolve(name)
-    const dest = join(engine, name)
-    if (existsSync(source)) {
-      await copyFile(source, dest)
-    }
-  }
-
-  const assetsDir = config.assets || 'assets'
-  const assets = join(workspace, assetsDir)
-  const publicDir = join(engine, 'public')
-  const publicAssets = join(publicDir, assetsDir)
-
-  if (existsSync(assets)) {
-    await cp(assets, publicAssets, {recursive: true, force: true})
-  } else {
-    const fallback = resolve('public')
-    if (existsSync(fallback)) {
-      await cp(fallback, publicDir, {recursive: true, force: true})
-    }
-  }
-
-  const source = resolve('node_modules')
-  const dest = join(engine, 'node_modules')
-
-  if (existsSync(source)) {
-    try {
-      const type = process.platform === 'win32' ? 'junction' : 'dir'
-      await symlink(source, dest, type)
-    } catch (error) {
-      if (error.code === 'EROFS') {
-        console.warn('⚠ Warning: Cannot create symlink on read-only filesystem')
-        console.warn('  Try running from a writable directory or contact your system administrator.')
-      } else if (error.code === 'EPERM') {
-        if (process.platform === 'win32') {
-          console.warn('⚠ Warning: Permission denied creating symlink')
-          console.warn('  On Windows, try enabling Developer Mode or running as Administrator.')
-        } else {
-          console.warn('⚠ Warning: Permission denied creating symlink')
-          console.warn('  Check directory permissions or try a different location.')
-        }
-      } else if (error.code === 'EXDEV') {
-        console.warn('⚠ Warning: Cannot create symlink across filesystems')
-        console.warn('  Workspace and DocFu installation are on different devices/mounts.')
-      } else {
-        console.warn(`⚠ Warning: Could not create node_modules link: ${error.message}`)
-      }
-      console.warn('  Build may fail if dependencies cannot be resolved.')
-      // Don't throw - let Astro fail with its own error if needed
-    }
-  }
-}
-
-/**
  * Main processing function that transforms and prepares documentation files
  * @param {string} [source] - Source directory path (defaults to getSource())
- * @param {string} [workspace] - Workspace directory path (defaults to env var or DEFAULT_WORKSPACE)
- * @param {string} [dist] - Dist directory path (defaults to env var or DEFAULT_DIST)
- * @param {string} astroEngine - Astro engine directory path for isolated builds
+ * @param {string} [root] - Root directory path (defaults to env var or DEFAULT_ROOT)
+ * @param {Object} [options] - Processing options
+ * @param {boolean} [options.yes] - Skip confirmation prompts
  * @returns {Promise<boolean>} True if processing completed successfully, false otherwise
  */
-export async function processDocuments(source, workspace, dist, astroEngine) {
+export async function processDocuments(source, root, options = {}) {
   source = source || getSource()
 
-  // Determine workspace directory (destination for processed files)
-  // Priority: 1. Function parameter, 2. DOCFU_WORKSPACE env var, 3. Default
-  // Using glob loader in content.config.ts, workspace root acts as the docs collection directly
-  const workspaceRoot = resolve(workspace || process.env.DOCFU_WORKSPACE || DEFAULT_WORKSPACE)
-  const destination = workspaceRoot
-
-  // Determine dist directory (for safety checks only - not cleaned by this script)
-  // Priority: 1. Function parameter, 2. DOCFU_DIST env var, 3. Default
-  dist = resolve(dist || process.env.DOCFU_DIST || DEFAULT_DIST)
+  // Determine root directory (.docfu by default)
+  // Priority: 1. Function parameter, 2. DOCFU_ROOT env var, 3. Default
+  root = resolve(root || process.env.DOCFU_ROOT || DEFAULT_ROOT)
+  const workspace = join(root, 'workspace')
+  const dist = join(root, 'dist')
+  const destination = join(workspace, 'src/content/docs')
 
   console.log(`Processing docs:`)
   console.log(`  Source: ${source}`)
-  console.log(`  Workspace: ${workspaceRoot}`)
+  console.log(`  Root: ${root}`)
+  console.log(`  Workspace: ${workspace}`)
   console.log(`  Build output: ${dist}`)
 
   if (!existsSync(source)) {
@@ -334,60 +264,57 @@ export async function processDocuments(source, workspace, dist, astroEngine) {
   }
 
   // Additional safety layer beyond del's built-in protections
-  if (isDangerousSystemPath(destination)) {
-    console.error(`✗ DANGER: Workspace path is a critical system directory: ${destination}`)
+  if (isDangerousSystemPath(root)) {
+    console.error(`✗ DANGER: Root path is a critical system directory: ${root}`)
     console.error(`  Refusing to delete: home, root, Documents, Desktop, or Downloads.`)
-    console.error(`  Please use a safe subdirectory for DOCFU_WORKSPACE.`)
+    console.error(`  Please use a safe subdirectory for DOCFU_ROOT.`)
     process.exit(1)
   }
 
-  if (isDangerousSystemPath(dist)) {
-    console.error(`✗ DANGER: Dist path is a critical system directory: ${dist}`)
-    console.error(`  Refusing to delete: home, root, Documents, Desktop, or Downloads.`)
-    console.error(`  Please use a safe subdirectory for DOCFU_DIST.`)
+  // Prevent deleting source directory
+  const normalizedRoot = resolve(root)
+  const normalizedSource = resolve(source)
+
+  if (normalizedRoot === normalizedSource) {
+    console.error(`✗ DANGER: Root directory cannot be the same as source directory`)
+    console.error(`  Root: ${root}`)
+    console.error(`  Source: ${source}`)
+    console.error(`  Please use a separate directory for DOCFU_ROOT (e.g., .docfu)`)
     process.exit(1)
   }
 
-  const isSafeDocfuPath = path => {
-    const normalized = resolve(path)
-    const relativeToCwd = relative(process.cwd(), normalized)
-    return relativeToCwd.startsWith('.docfu/')
+  // Prevent root from being a parent of source (would delete source when cleaning root)
+  if (normalizedSource.startsWith(normalizedRoot + sep)) {
+    console.error(`✗ DANGER: Source directory is inside root directory`)
+    console.error(`  Root: ${root}`)
+    console.error(`  Source: ${source}`)
+    console.error(`  This would delete your source files when cleaning root.`)
+    console.error(`  Please use a separate directory for DOCFU_ROOT (e.g., .docfu)`)
+    process.exit(1)
   }
 
-  /**
-   * Safely delete a directory using del package
-   * @param {string} dirPath - Directory path to delete
-   * @param {string} displayName - Human-readable name for logging
-   */
-  const safeDelete = async (dirPath, displayName) => {
-    if (!existsSync(dirPath)) return
+  // Clean root directory (safe to proceed: passed all safety checks above)
+  if (existsSync(root)) {
+    console.log(theme.danger('→ The following will be deleted:'))
+    console.log(`  ${theme.warning(root)}`)
 
-    if (!isSafeDocfuPath(dirPath)) {
-      const confirmed = await confirm(`⚠️  About to delete and recreate: ${dirPath}\n   Continue?`)
-      if (!confirmed) {
-        console.log('✗ Build cancelled by user')
-        process.exit(1)
-      }
+    const confirmed = await confirm('Delete and continue?', options)
+    if (!confirmed) {
+      console.log('✗ Operation cancelled by user')
+      return false
     }
 
-    console.log(`→ Cleaning ${displayName}: ${dirPath}`)
-
-    try {
-      await deleteAsync(dirPath, {
-        cwd: process.cwd(),
-        force: false,
-        followSymbolicLinks: false,
-      })
-    } catch (error) {
-      console.error(`✗ DANGER: Cannot delete ${displayName}: ${dirPath}`)
-      console.error(`  ${error.message}`)
-      console.error(`  This path is protected by safety checks.`)
-      process.exit(1)
-    }
+    console.log(`→ Cleaning root directory...`)
+    // Delete entire root directory
+    // Safe to proceed: passed all safety checks above + user confirmation
+    deleteSync([root], {
+      force: false, // Safety: refuse to delete outside cwd
+      followSymbolicLinks: false, // Safety: don't follow symlinks
+      dot: true, // Required: allow deleting dotfiles like .DS_Store within root directory
+    })
   }
 
-  await safeDelete(destination, 'workspace')
-
+  // Create destination directory structure
   await mkdir(destination, {recursive: true})
 
   console.log(`→ Discovering docfu.yml configuration files...`)
@@ -395,18 +322,29 @@ export async function processDocuments(source, workspace, dist, astroEngine) {
 
   const assetsDir = masterConfig.assets || 'assets'
   const assets = join(source, assetsDir)
-  const workspaceAssets = join(workspaceRoot, assetsDir)
+  const workspaceAssets = join(workspace, 'public', assetsDir)
 
   if (existsSync(assets)) {
     console.log(`→ Copying assets from ${assetsDir}/...`)
     await cp(assets, workspaceAssets, {recursive: true})
   }
 
-  await setupAstroEngine(astroEngine, workspaceRoot, masterConfig)
+  // Save config to DOCFU_ROOT/config.yml
+  const configPath = join(root, 'config.yml')
+  const sourceConfigPath = join(source, 'docfu.yml')
 
-  const masterConfigPath = join(destination, 'docfu.yml')
-  await writeFile(masterConfigPath, yaml.dump(masterConfig))
-  console.log(`→ Master config saved: ${masterConfigPath}`)
+  // If no source docfu.yml exists, copy docfu.example.yml as template
+  if (!existsSync(sourceConfigPath)) {
+    const __dirname = dirname(fileURLToPath(import.meta.url))
+    const packageRoot = resolve(__dirname, '../..')
+    const exampleConfigPath = join(packageRoot, 'docfu.example.yml')
+    await copyFile(exampleConfigPath, configPath)
+    console.log(`→ Config template copied: ${configPath}`)
+  } else {
+    // Otherwise save merged config from source
+    await writeFile(configPath, yaml.dump(masterConfig))
+    console.log(`→ Config saved: ${configPath}`)
+  }
 
   if (masterConfig.exclude?.length > 0) {
     console.log(`→ Exclude patterns: ${masterConfig.exclude.join(', ')}`)
@@ -477,16 +415,16 @@ export async function processDocuments(source, workspace, dist, astroEngine) {
   const componentsEnabled = componentsDir !== false && componentsDir !== null
 
   // Discover components early from SOURCE (before copying) so we can pass them to MDX processor
-  // They will be copied to workspace during file processing loop below
+  // They will be copied to workspace/src/components/ during file processing loop below
   let discoveredComponents = []
   if (componentsEnabled) {
     const sourceComponentsPath = join(source, componentsDir)
-    // Discover from source, but use workspace paths for manifest (components will be copied there)
+    // Discover from source, but use relative paths for manifest
     const components = await discoverComponents(sourceComponentsPath, source)
-    // Adjust paths to point to workspace locations
+    // Paths are relative to components directory (will be in src/components/)
     discoveredComponents = components.map(comp => ({
       ...comp,
-      path: join(componentsDir, comp.filename).replace(/\\/g, '/'),
+      path: relative(join(source, componentsDir), join(source, comp.path)).replace(/\\/g, '/'),
     }))
     if (discoveredComponents.length > 0) {
       console.log(`→ Discovered ${discoveredComponents.length} component(s) in ${componentsDir}/`)
@@ -507,8 +445,14 @@ export async function processDocuments(source, workspace, dist, astroEngine) {
 
     if (f.name === 'docfu.yml') continue
 
-    const assetsDir = masterConfig.assets || 'assets'
     const relativePath = relative(source, originFile)
+
+    // Always exclude .docfu directory to prevent recursive processing
+    if (relativePath.startsWith('.docfu/') || relativePath.startsWith('.docfu\\')) {
+      continue
+    }
+
+    const assetsDir = masterConfig.assets || 'assets'
     if (relativePath.startsWith(assetsDir + '/') || relativePath.startsWith(assetsDir + '\\')) {
       continue
     }
@@ -522,12 +466,18 @@ export async function processDocuments(source, workspace, dist, astroEngine) {
       componentsEnabled &&
       (relativePath.startsWith(componentsDir + '/') || relativePath.startsWith(componentsDir + '\\'))
 
-    let destinationFile = join(destination, relative(source, originFile))
-
-    if (isComponentFile && !f.name.endsWith('.astro')) {
+    let destinationFile
+    if (isComponentFile) {
+      // Components go to workspace/src/components/
+      const componentRelPath = relative(join(source, componentsDir), originFile)
       const nameWithoutExt = f.name.replace(/\.[^.]+$/, '')
-      destinationFile = join(dirname(destinationFile), `${nameWithoutExt}.astro`)
+      const finalFilename = f.name.endsWith('.astro') ? f.name : `${nameWithoutExt}.astro`
+      destinationFile = join(workspace, 'src/components', dirname(componentRelPath), finalFilename)
+    } else {
+      // Markdown and other files go to workspace/src/content/docs/
+      destinationFile = join(destination, relative(source, originFile))
     }
+
     await mkdir(dirname(destinationFile), {recursive: true})
 
     if (isComponentFile) {
@@ -598,8 +548,11 @@ export async function processDocuments(source, workspace, dist, astroEngine) {
 
   await updatePartialReferences(destination, fileConversionMap)
 
-  const manifestPath = join(destination, 'manifest.json')
-  const manifest = {docs}
+  const manifestPath = join(root, 'manifest.json')
+  const manifest = {
+    config: masterConfig,
+    docs,
+  }
   if (discoveredComponents.length > 0) {
     manifest.components = {
       directory: componentsDir,

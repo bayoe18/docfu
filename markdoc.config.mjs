@@ -3,22 +3,21 @@ import Markdoc from '@markdoc/markdoc'
 import starlightMarkdoc from '@astrojs/starlight-markdoc'
 import {join, dirname} from 'path'
 import {fileURLToPath} from 'url'
-import {extractPropsFromComponent} from './src/utils/components.js'
-import {getWorkspace, loadManifest} from './src/utils/docfu.js'
-import {DOCFU_COMPONENTS} from './scripts/lib/components.js'
+import {extractPropsFromComponent, getDocfuComponents} from './src/utils/components.js'
+import {loadManifest} from './src/utils/docfu.js'
 
 const {Tag} = Markdoc
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const preset = starlightMarkdoc()
-const workspace = getWorkspace()
-const manifest = loadManifest(workspace)
+// Load manifest from DOCFU_ROOT/manifest.json
+const manifest = loadManifest()
 const userComponents = manifest.components?.items || []
 
 // Build tags with dynamic attribute discovery
 const tags = {...preset.tags}
 
-// DocFu-provided components (static list, dynamic prop discovery)
-const docfuComponents = DOCFU_COMPONENTS
+// DocFu-provided components (dynamic discovery from src/components/)
+const docfuComponents = getDocfuComponents()
 for (const name of docfuComponents) {
   const tagName = name.toLowerCase()
   const componentPath = join(__dirname, `src/components/${name}.astro`)
@@ -26,7 +25,7 @@ for (const name of docfuComponents) {
 
   const attributes = {}
   for (const prop of props) {
-    attributes[prop] = {type: String, required: false}
+    attributes[prop] = {required: false}
   }
 
   tags[tagName] = {
@@ -38,13 +37,14 @@ for (const name of docfuComponents) {
 // Register user components as tags (can override DocFu components)
 for (const comp of userComponents) {
   const tagName = comp.name.toLowerCase()
-  const props = extractPropsFromComponent(join(workspace, comp.path))
+  // comp.path is relative to src/components/
+  const props = extractPropsFromComponent(join(__dirname, `src/components/${comp.path}`))
 
   const attributes = {}
-  for (const prop of props) attributes[prop] = {type: String, required: false}
+  for (const prop of props) attributes[prop] = {required: false}
 
   tags[tagName] = {
-    render: component(`../workspace/${comp.path}`),
+    render: component(`./src/components/${comp.path}`),
     attributes,
   }
 }

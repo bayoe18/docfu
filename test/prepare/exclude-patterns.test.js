@@ -23,12 +23,12 @@ describe('Exclude Patterns', () => {
       'internal/secret.md',
     ])
 
-    const {exitCode, stdout} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode, stdout} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'CLI should succeed')
     assert.ok(stdout.includes('✗ Excluded:'), 'Should show excluded files in output')
 
-    assert.ok(existsSync(join(paths.workspace, 'index.md')), 'index.md should be included')
+    assert.ok(existsSync(join(paths.workspace, 'src/content/docs/index.md')), 'index.md should be included')
 
     assert.ok(!existsSync(join(paths.workspace, 'drafts')), 'drafts directory should not exist')
     assert.ok(!existsSync(join(paths.workspace, 'archive')), 'archive directory should not exist')
@@ -39,14 +39,17 @@ describe('Exclude Patterns', () => {
     const paths = getTestPaths('exclude-files', import.meta.url)
     await createFixtures(paths, 'exclude-patterns', ['docfu.yml', 'index.md', 'regular.md', 'specific-file.md'])
 
-    const {exitCode, stdout} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode, stdout} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'CLI should succeed')
 
-    assert.ok(existsSync(join(paths.workspace, 'index.md')), 'index.md should be included')
-    assert.ok(existsSync(join(paths.workspace, 'regular.md')), 'regular.md should be included')
+    assert.ok(existsSync(join(paths.workspace, 'src/content/docs/index.md')), 'index.md should be included')
+    assert.ok(existsSync(join(paths.workspace, 'src/content/docs/regular.md')), 'regular.md should be included')
 
-    assert.ok(!existsSync(join(paths.workspace, 'specific-file.md')), 'specific-file.md should be excluded')
+    assert.ok(
+      !existsSync(join(paths.workspace, 'src/content/docs/specific-file.md')),
+      'specific-file.md should be excluded'
+    )
     assert.ok(stdout.includes('specific-file.md'), 'Should show specific-file.md as excluded')
   })
 
@@ -54,14 +57,17 @@ describe('Exclude Patterns', () => {
     const paths = getTestPaths('exclude-glob-suffix', import.meta.url)
     await createFixtures(paths, 'exclude-patterns', ['docfu.yml', 'index.md', 'regular.md', 'feature-draft.md'])
 
-    const {exitCode, stdout} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode, stdout} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'CLI should succeed')
 
-    assert.ok(existsSync(join(paths.workspace, 'index.md')), 'index.md should be included')
-    assert.ok(existsSync(join(paths.workspace, 'regular.md')), 'regular.md should be included')
+    assert.ok(existsSync(join(paths.workspace, 'src/content/docs/index.md')), 'index.md should be included')
+    assert.ok(existsSync(join(paths.workspace, 'src/content/docs/regular.md')), 'regular.md should be included')
 
-    assert.ok(!existsSync(join(paths.workspace, 'feature-draft.md')), 'feature-draft.md should be excluded')
+    assert.ok(
+      !existsSync(join(paths.workspace, 'src/content/docs/feature-draft.md')),
+      'feature-draft.md should be excluded'
+    )
     assert.ok(stdout.includes('feature-draft.md'), 'Should show feature-draft.md as excluded')
   })
 
@@ -69,12 +75,12 @@ describe('Exclude Patterns', () => {
     const paths = getTestPaths('exclude-glob-ext', import.meta.url)
     await createFixtures(paths, 'exclude-patterns', ['docfu.yml', 'index.md', 'regular.md', 'backup.tmp.md'])
 
-    const {exitCode, stdout} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode, stdout} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'CLI should succeed')
 
-    assert.ok(existsSync(join(paths.workspace, 'index.md')), 'index.md should be included')
-    assert.ok(existsSync(join(paths.workspace, 'regular.md')), 'regular.md should be included')
+    assert.ok(existsSync(join(paths.workspace, 'src/content/docs/index.md')), 'index.md should be included')
+    assert.ok(existsSync(join(paths.workspace, 'src/content/docs/regular.md')), 'regular.md should be included')
 
     assert.ok(!existsSync(join(paths.workspace, 'backup.tmp.md')), 'backup.tmp.md should be excluded')
     assert.ok(stdout.includes('backup.tmp.md'), 'Should show backup.tmp.md as excluded')
@@ -84,11 +90,11 @@ describe('Exclude Patterns', () => {
     const paths = getTestPaths('exclude-glob-prefix', import.meta.url)
     await createFixtures(paths, 'exclude-patterns', ['docfu.yml', 'index.md', 'temp-dir/file.md'])
 
-    const {exitCode, stdout} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode, stdout} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'CLI should succeed')
 
-    assert.ok(existsSync(join(paths.workspace, 'index.md')), 'index.md should be included')
+    assert.ok(existsSync(join(paths.workspace, 'src/content/docs/index.md')), 'index.md should be included')
 
     assert.ok(!existsSync(join(paths.workspace, 'temp-dir')), 'temp-dir should be excluded')
     assert.ok(stdout.includes('temp-dir'), 'Should show temp-dir as excluded')
@@ -98,7 +104,7 @@ describe('Exclude Patterns', () => {
     const paths = getTestPaths('exclude-list', import.meta.url)
     await createFixtures(paths, 'exclude-patterns', ['docfu.yml', 'index.md'])
 
-    const {exitCode, stdout} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode, stdout} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'CLI should succeed')
 
@@ -122,11 +128,12 @@ describe('Exclude Patterns', () => {
       'archive/old.md',
     ])
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'CLI should succeed')
 
-    const files = await readdir(paths.workspace, {recursive: true})
+    const docs = join(paths.workspace, 'src/content/docs')
+    const files = await readdir(docs, {recursive: true})
     const mdFiles = files.filter(f => f.endsWith('.md'))
 
     assert.ok(mdFiles.includes('index.md'), 'Should include index.md')

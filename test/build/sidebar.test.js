@@ -26,11 +26,11 @@ describe('Sidebar Generation', () => {
       'api/users.md': '# Users API',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
-    const manifest = JSON.parse(readFileSync(join(paths.workspace, 'manifest.json'), 'utf-8'))
+    const manifest = JSON.parse(readFileSync(join(paths.root, 'manifest.json'), 'utf-8'))
     assert.ok(manifest.docs, 'Should have docs array in manifest')
     assert.strictEqual(manifest.docs.length, 6, 'Should have 6 documents in manifest')
     assert.ok(
@@ -42,7 +42,7 @@ describe('Sidebar Generation', () => {
       'Should have guides/quickstart in manifest'
     )
 
-    const config = yaml.load(readFileSync(join(paths.workspace, 'docfu.yml'), 'utf-8'))
+    const config = yaml.load(readFileSync(join(paths.root, 'config.yml'), 'utf-8'))
     assert.ok(!config.sidebar, 'Should have no explicit sidebar in config (triggers auto-generation)')
 
     const sidebar = buildSidebar(manifest, config)
@@ -98,18 +98,18 @@ sidebar:
       'quickstart.md': '# Getting Started Fast',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
-    const config = yaml.load(readFileSync(join(paths.workspace, 'docfu.yml'), 'utf-8'))
+    const config = yaml.load(readFileSync(join(paths.root, 'config.yml'), 'utf-8'))
     assert.ok(config.sidebar, 'Should have explicit sidebar in config')
     assert.ok(Array.isArray(config.sidebar), 'Sidebar should be array')
     assert.strictEqual(config.sidebar.length, 2, 'Should have 2 sidebar items in config')
     assert.strictEqual(config.sidebar[0].file, 'index.md', 'First item should reference index.md')
     assert.strictEqual(config.sidebar[0].label, 'Home', 'First item should have custom label')
 
-    const manifest = JSON.parse(readFileSync(join(paths.workspace, 'manifest.json'), 'utf-8'))
+    const manifest = JSON.parse(readFileSync(join(paths.root, 'manifest.json'), 'utf-8'))
     assert.strictEqual(manifest.docs.length, 2, 'Should have 2 documents in manifest')
 
     const sidebar = buildSidebar(manifest, config)
@@ -150,7 +150,7 @@ sidebar:
       'api/users.md': '# Users',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
@@ -182,7 +182,7 @@ sidebar:
       'api/posts.md': '# Posts API',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
@@ -209,7 +209,7 @@ sidebar:
       'new-feature.md': '# New Feature',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
@@ -243,12 +243,12 @@ sidebar:
       'beta.md': '# Beta Feature',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
-    const manifest = JSON.parse(readFileSync(join(paths.workspace, 'manifest.json'), 'utf-8'))
-    const config = yaml.load(readFileSync(join(paths.workspace, 'docfu.yml'), 'utf-8'))
+    const manifest = JSON.parse(readFileSync(join(paths.root, 'manifest.json'), 'utf-8'))
+    const config = yaml.load(readFileSync(join(paths.root, 'config.yml'), 'utf-8'))
 
     const sidebar = buildSidebar(manifest, config)
     assert.strictEqual(sidebar.length, 2, 'Should have 2 items (index + Features group)')
@@ -293,7 +293,7 @@ sidebar:
       'advanced/security.md': '# Security Best Practices',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
@@ -325,7 +325,7 @@ sidebar:
       'quickstart.md': '# Quickstart Guide',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
@@ -360,7 +360,7 @@ sidebar:
       'guides/advanced.md': '# Advanced',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
@@ -394,7 +394,7 @@ sidebar:
       'middle.md': '# Middle',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
@@ -417,7 +417,7 @@ sidebar:
       'api/endpoints.md': '# API Endpoints',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 

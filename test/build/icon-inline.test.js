@@ -25,7 +25,7 @@ Regular icon without inline:
 <Icon name="rocket" />`,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
     assert.ok(existsSync(join(paths.dist, 'index.html')), 'Should generate index.html')
@@ -50,7 +50,7 @@ Regular icon without inline:
 {% icon name="rocket" /%}`,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
     assert.ok(existsSync(join(paths.dist, 'index.html')), 'Should generate index.html')
@@ -72,7 +72,7 @@ Regular icon without inline:
 <Icon name="star" />`,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 

@@ -23,7 +23,7 @@ describe('Content Edge Cases', () => {
     writeFileSync(join(paths.source, 'api', 'reference.md'), '# API Reference\n\nAPI docs')
     writeFileSync(join(paths.source, 'guides', 'reference.md'), '# Guide Reference\n\nGuide docs')
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Should handle duplicate filenames in different dirs')
 
@@ -47,13 +47,22 @@ describe('Content Edge Cases', () => {
     writeFileSync(join(paths.source, 'file_with_underscores.md'), '# Underscores\n\nContent')
     writeFileSync(join(paths.source, 'file with spaces.md'), '# Spaces\n\nContent')
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Should handle special characters in filenames')
 
-    assert.ok(existsSync(join(paths.workspace, 'file-with-dashes.md')), 'Should process files with dashes')
-    assert.ok(existsSync(join(paths.workspace, 'file_with_underscores.md')), 'Should process files with underscores')
-    assert.ok(existsSync(join(paths.workspace, 'file with spaces.md')), 'Should process files with spaces')
+    assert.ok(
+      existsSync(join(paths.workspace, 'src/content/docs/file-with-dashes.md')),
+      'Should process files with dashes'
+    )
+    assert.ok(
+      existsSync(join(paths.workspace, 'src/content/docs/file_with_underscores.md')),
+      'Should process files with underscores'
+    )
+    assert.ok(
+      existsSync(join(paths.workspace, 'src/content/docs/file with spaces.md')),
+      'Should process files with spaces'
+    )
   })
 
   it('should handle very long titles', async () => {
@@ -67,11 +76,11 @@ describe('Content Edge Cases', () => {
       'long-title.md': `# ${longTitle}\n\nContent here.`,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Should handle very long titles')
 
-    const manifest = JSON.parse(readFileSync(join(paths.workspace, 'manifest.json'), 'utf-8'))
+    const manifest = JSON.parse(readFileSync(join(paths.root, 'manifest.json'), 'utf-8'))
     const doc = manifest.docs.find(d => d.slug === 'long-title')
     assert.ok(doc, 'Should include document in manifest')
     assert.ok(doc.title.includes('Very Long Title'), 'Should preserve long title')
@@ -85,7 +94,7 @@ describe('Content Edge Cases', () => {
       'unicode.md': '# Unicode Test 🚀\n\nContent with emoji 😀 and unicode: café, naïve, 你好',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Should handle unicode and emoji')
 
@@ -110,7 +119,7 @@ Regular markdown here.
 <span style="color: red;">Inline HTML</span> with *markdown*.`,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Should handle mixed markdown and HTML')
 
@@ -127,16 +136,22 @@ Regular markdown here.
     writeFileSync(join(paths.source, 'README.md'), '# Project README\n\nMain readme')
     writeFileSync(join(paths.source, 'guides', 'README.md'), '# Guides README\n\nGuides intro')
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Should handle README.md files')
 
-    assert.ok(existsSync(join(paths.workspace, 'index.md')), 'Should rename root README to index.md')
-    assert.ok(existsSync(join(paths.workspace, 'guides', 'index.md')), 'Should rename nested README to index.md')
-    assert.ok(!existsSync(join(paths.workspace, 'README.md')), 'Root README.md should not exist')
-    assert.ok(!existsSync(join(paths.workspace, 'guides', 'README.md')), 'Nested README.md should not exist')
+    assert.ok(existsSync(join(paths.workspace, 'src/content/docs/index.md')), 'Should rename root README to index.md')
+    assert.ok(
+      existsSync(join(paths.workspace, 'src/content/docs/guides', 'index.md')),
+      'Should rename nested README to index.md'
+    )
+    assert.ok(!existsSync(join(paths.workspace, 'src/content/docs/README.md')), 'Root README.md should not exist')
+    assert.ok(
+      !existsSync(join(paths.workspace, 'src/content/docs/guides', 'README.md')),
+      'Nested README.md should not exist'
+    )
 
-    const manifest = JSON.parse(readFileSync(join(paths.workspace, 'manifest.json'), 'utf-8'))
+    const manifest = JSON.parse(readFileSync(join(paths.root, 'manifest.json'), 'utf-8'))
     assert.ok(
       manifest.docs.find(d => d.title === 'Project README'),
       'Should include README in manifest'
@@ -155,13 +170,17 @@ Regular markdown here.
       'guide.md': '# guide (lowercase)\n\nDifferent content',
     })
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
-    if (existsSync(join(paths.workspace, 'Guide.md')) && existsSync(join(paths.workspace, 'guide.md'))) {
+    if (
+      existsSync(join(paths.workspace, 'src/content/docs/Guide.md')) &&
+      existsSync(join(paths.workspace, 'src/content/docs/guide.md'))
+    ) {
       assert.strictEqual(exitCode, 0, 'Should handle case-sensitive filenames')
     } else {
       assert.ok(
-        existsSync(join(paths.workspace, 'Guide.md')) || existsSync(join(paths.workspace, 'guide.md')),
+        existsSync(join(paths.workspace, 'src/content/docs/Guide.md')) ||
+          existsSync(join(paths.workspace, 'src/content/docs/guide.md')),
         'Should process at least one version'
       )
     }
@@ -176,11 +195,11 @@ Regular markdown here.
     writeFileSync(join(paths.source, 'LICENSE'), 'MIT License text')
     writeFileSync(join(paths.source, 'CHANGELOG'), '# Changelog\n\nVersion 1.0')
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Should handle files without extensions')
 
-    assert.ok(existsSync(join(paths.workspace, 'index.md')), 'Should process markdown files')
+    assert.ok(existsSync(join(paths.workspace, 'src/content/docs/index.md')), 'Should process markdown files')
   })
 
   it('should handle very deeply nested directories', async () => {
@@ -192,11 +211,11 @@ Regular markdown here.
     writeFileSync(join(paths.source, 'docfu.yml'), 'site:\n  name: Test\n  url: https://test.com')
     writeFileSync(join(deepPath, 'deep.md'), '# Deep File\n\nDeeply nested content')
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Should handle deeply nested directories')
     assert.ok(
-      existsSync(join(paths.workspace, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'deep.md')),
+      existsSync(join(paths.workspace, 'src/content/docs/a', 'b', 'c', 'd', 'e', 'f', 'g', 'deep.md')),
       'Should preserve deep nesting'
     )
   })
@@ -208,7 +227,7 @@ Regular markdown here.
       'empty-heading.md': '# \n\nContent after empty heading.\n\n## Another Section',
     })
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.ok(exitCode === 0 || exitCode === 1, 'Should handle empty heading gracefully')
   })

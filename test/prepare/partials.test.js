@@ -18,13 +18,16 @@ describe('Markdoc Partials', () => {
     const paths = getTestPaths('partial-conversion', import.meta.url)
     await createFixtures(paths, 'partials', ['docfu.yml', 'with-partial.md', '_partials/note.md'])
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'CLI should succeed')
-    assert.ok(existsSync(join(paths.workspace, 'with-partial.mdoc')), 'File with partial should become .mdoc')
-    assert.ok(!existsSync(join(paths.workspace, 'with-partial.md')), 'Original .md should not exist')
+    assert.ok(
+      existsSync(join(paths.workspace, 'src/content/docs/with-partial.mdoc')),
+      'File with partial should become .mdoc'
+    )
+    assert.ok(!existsSync(join(paths.workspace, 'src/content/docs/with-partial.md')), 'Original .md should not exist')
 
-    const content = await readFile(join(paths.workspace, 'with-partial.mdoc'), 'utf-8')
+    const content = await readFile(join(paths.workspace, 'src/content/docs/with-partial.mdoc'), 'utf-8')
     assert.ok(content.includes('{% partial'), 'Should preserve partial tags')
     assert.ok(content.includes('file="_partials/note"'), 'Should preserve extensionless partial reference')
   })
@@ -33,27 +36,27 @@ describe('Markdoc Partials', () => {
     const paths = getTestPaths('partial-markdoc', import.meta.url)
     await createFixtures(paths, 'partials', ['docfu.yml', 'with-mdoc-partial.md', '_partials/markdoc-partial.md'])
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'CLI should succeed')
 
-    assert.ok(existsSync(join(paths.workspace, 'with-mdoc-partial.mdoc')), 'Main file should be .mdoc')
+    assert.ok(existsSync(join(paths.workspace, 'src/content/docs/with-mdoc-partial.mdoc')), 'Main file should be .mdoc')
 
     assert.ok(
-      existsSync(join(paths.workspace, '_partials/markdoc-partial.mdoc')),
+      existsSync(join(paths.workspace, 'src/content/docs/_partials/markdoc-partial.mdoc')),
       'Partial with markdoc should be .mdoc'
     )
     assert.ok(
-      !existsSync(join(paths.workspace, '_partials/markdoc-partial.md')),
+      !existsSync(join(paths.workspace, 'src/content/docs/_partials/markdoc-partial.md')),
       'Original partial .md should not exist'
     )
 
-    const mainContent = await readFile(join(paths.workspace, 'with-mdoc-partial.mdoc'), 'utf-8')
-    assert.ok(mainContent.includes('file="_partials/markdoc-partial.mdoc"'), 'Reference should be updated to .mdoc')
-    assert.ok(!mainContent.includes('file="_partials/markdoc-partial.md"'), 'Should not contain old .md reference')
+    const main = await readFile(join(paths.workspace, 'src/content/docs/with-mdoc-partial.mdoc'), 'utf-8')
+    assert.ok(main.includes('file="_partials/markdoc-partial.mdoc"'), 'Reference should be updated to .mdoc')
+    assert.ok(!main.includes('file="_partials/markdoc-partial.md"'), 'Should not contain old .md reference')
 
-    const partialContent = await readFile(join(paths.workspace, '_partials/markdoc-partial.mdoc'), 'utf-8')
-    assert.ok(partialContent.includes('{% badge'), 'Partial should contain markdoc syntax')
+    const partial = await readFile(join(paths.workspace, 'src/content/docs/_partials/markdoc-partial.mdoc'), 'utf-8')
+    assert.ok(partial.includes('{% badge'), 'Partial should contain markdoc syntax')
   })
 
   it('should preserve partials directory structure', async () => {
@@ -65,12 +68,15 @@ describe('Markdoc Partials', () => {
       '_partials/markdoc-partial.md',
     ])
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'CLI should succeed')
-    assert.ok(existsSync(join(paths.workspace, '_partials')), 'Partials directory should exist')
-    assert.ok(existsSync(join(paths.workspace, '_partials/note.md')), 'Plain partial should exist')
-    assert.ok(existsSync(join(paths.workspace, '_partials/markdoc-partial.mdoc')), 'Markdoc partial should exist')
+    assert.ok(existsSync(join(paths.workspace, 'src/content/docs/_partials')), 'Partials directory should exist')
+    assert.ok(existsSync(join(paths.workspace, 'src/content/docs/_partials/note.md')), 'Plain partial should exist')
+    assert.ok(
+      existsSync(join(paths.workspace, 'src/content/docs/_partials/markdoc-partial.mdoc')),
+      'Markdoc partial should exist'
+    )
   })
 })
 
@@ -107,7 +113,7 @@ And the license:
 <License />`,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
@@ -142,7 +148,7 @@ import Section from './_partials/section.mdx'
 <Section />`,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 

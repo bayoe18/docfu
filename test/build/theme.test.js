@@ -16,7 +16,7 @@ describe('Theme Configuration', () => {
     const paths = getTestPaths('theme-nova', import.meta.url)
     await createFixtures(paths, 'theme-nova', ['docfu.yml', 'index.md'])
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build with nova theme should succeed')
     assert.ok(existsSync(join(paths.dist, 'index.html')), 'Should generate index.html')
@@ -29,7 +29,7 @@ describe('Theme Configuration', () => {
     const paths = getTestPaths('theme-starlight', import.meta.url)
     await createFixtures(paths, 'theme-starlight', ['docfu.yml', 'index.md'])
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build with starlight theme should succeed')
     assert.ok(existsSync(join(paths.dist, 'index.html')), 'Should generate index.html')
@@ -42,7 +42,7 @@ describe('Theme Configuration', () => {
     const paths = getTestPaths('theme-default', import.meta.url)
     await createFixtures(paths, 'build', ['docfu.yml', 'index.md'])
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build with default theme should succeed')
     assert.ok(existsSync(join(paths.dist, 'index.html')), 'Should generate index.html')

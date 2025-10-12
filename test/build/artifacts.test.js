@@ -19,7 +19,7 @@ describe('Build Artifacts', () => {
       'index.md': '# Home\n\nWelcome',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
     assert.ok(existsSync(join(paths.dist, '404.html')), 'Should generate 404.html')
@@ -37,7 +37,7 @@ describe('Build Artifacts', () => {
       'index.md': '---\ntitle: Welcome\ndescription: Test documentation site\n---\n\n# Welcome\n\nContent here.',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
@@ -60,7 +60,7 @@ describe('Build Artifacts', () => {
       'page.md': '# Page\n\nContent with **bold** and *italic*.',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
@@ -84,7 +84,7 @@ describe('Build Artifacts', () => {
       'index.md': '# Home\n\nContent',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
@@ -106,7 +106,7 @@ describe('Build Artifacts', () => {
       'guide.md': '# Guide',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
@@ -128,7 +128,7 @@ describe('Build Artifacts', () => {
     writeFileSync(join(paths.source, 'index.md'), '# Home')
     writeFileSync(join(paths.source, 'public', 'favicon.ico'), 'fake-favicon-data')
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed with favicon')
 
@@ -155,7 +155,7 @@ More content.
 Final content.`,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
@@ -184,18 +184,17 @@ Final content.`,
     )
     writeFileSync(join(paths.source, 'images', 'logo.png'), pngData)
 
-    const {exitCode, stderr, stdout} = await runCLI([
-      'build',
-      paths.source,
-      '--workspace',
-      paths.workspace,
-      '--dist',
-      paths.dist,
-    ])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
-    assert.ok(existsSync(join(paths.workspace, 'images', 'logo.png')), 'Should copy images to workspace')
-    assert.ok(existsSync(join(paths.workspace, 'images', 'icons', 'small.svg')), 'Should preserve asset structure')
+    assert.ok(
+      existsSync(join(paths.workspace, 'src/content/docs/images', 'logo.png')),
+      'Should copy images to workspace'
+    )
+    assert.ok(
+      existsSync(join(paths.workspace, 'src/content/docs/images', 'icons', 'small.svg')),
+      'Should preserve asset structure'
+    )
   })
 
   it('should have accessible navigation structure', async () => {
@@ -207,7 +206,7 @@ Final content.`,
       'api.md': '# API',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 

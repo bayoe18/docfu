@@ -28,20 +28,17 @@ const ATTRIBUTE_PATTERN = /(\w+)=(\w+)/g
  * @returns {Promise<string>} Content with GitHub alerts converted to markdoc asides
  */
 const convertGitHubAlerts = async content => {
-  // Quick check: if content doesn't contain GitHub alert syntax, return unchanged
   if (!/>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i.test(content)) return content
   const processor = unified()
     .use(remarkParse)
     .use(remarkFrontmatter, ['yaml'])
     .use(() => tree => {
       visit(tree, 'blockquote', (node, index, parent) => {
-        // Check if blockquote starts with [!TYPE]
         if (!node.children?.[0] || node.children[0].type !== 'paragraph') return
 
         const firstPara = node.children[0]
         const firstChild = firstPara.children?.[0]
 
-        // Look for [!NOTE], [!TIP], etc. in the first text node
         if (!firstChild || firstChild.type !== 'text') return
 
         const alertMatch = firstChild.value.match(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/)
@@ -50,7 +47,6 @@ const convertGitHubAlerts = async content => {
         const alertType = alertMatch[1]
         const markdocType = ALERT_TYPES[alertType]
 
-        // Remove the [!TYPE] prefix from the first text node
         firstChild.value = firstChild.value.slice(alertMatch[0].length)
 
         // If the first text node is now empty and it's the only child, remove the entire first paragraph
@@ -67,13 +63,11 @@ const convertGitHubAlerts = async content => {
           incrementListMarker: false,
         })
 
-        // Serialize the blockquote children to markdown
         const childContent = node.children
           .map(child => childProcessor.stringify({type: 'root', children: [child]}))
           .join('')
           .trim()
 
-        // Replace the blockquote with an aside tag (as html node)
         const asideNode = {
           type: 'html',
           value: `{% aside type="${markdocType}" %}\n${childContent}\n{% /aside %}`,
@@ -114,9 +108,8 @@ const convertBadges = text =>
  * @param {string} content - The markdown content
  * @returns {string} Content with :badge[text] in headers converted to markdoc badges
  */
-const convertHeadingBadges = content => {
-  // Process each line to convert badges only in headings
-  return content
+const convertHeadingBadges = content =>
+  content
     .split('\n')
     .map(line => {
       if (/^#{1,6}\s/.test(line)) {
@@ -133,7 +126,6 @@ const convertHeadingBadges = content => {
       return line
     })
     .join('\n')
-}
 
 /**
  * Process a markdown file for Markdoc conversion
@@ -144,10 +136,7 @@ const convertHeadingBadges = content => {
 export const process = async (filePath, content) => {
   let result = content
 
-  // Convert GitHub alerts using AST
   result = await convertGitHubAlerts(result)
-
-  // Convert heading badges
   result = convertHeadingBadges(result)
 
   // Also convert badges in frontmatter title

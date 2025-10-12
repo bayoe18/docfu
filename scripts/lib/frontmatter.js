@@ -24,9 +24,7 @@ export const parseFrontmatter = content => {
     const tree = unified().use(remarkParse).use(remarkFrontmatter, ['yaml']).parse(content)
 
     let frontmatterYaml = null
-    visit(tree, 'yaml', node => {
-      frontmatterYaml = node.value
-    })
+    visit(tree, 'yaml', node => (frontmatterYaml = node.value))
 
     if (!frontmatterYaml) return null
 

@@ -5,24 +5,26 @@
  */
 
 import {existsSync, readFileSync} from 'fs'
-import {join} from 'path'
+import {join, resolve} from 'path'
 import yaml from 'js-yaml'
 
 /**
- * Get workspace path from environment or default
- * @returns {string} Workspace path
+ * Get root path from environment or default
+ * @returns {string} Absolute root path
  */
-export function getWorkspace() {
-  return process.env.DOCFU_WORKSPACE || '.docfu/workspace'
+export function getRoot() {
+  const root = process.env.DOCFU_ROOT || '.docfu'
+  return resolve(root)
 }
 
 /**
- * Load manifest.json from workspace
- * @param {string} [workspace] - Optional workspace path (defaults to DOCFU_WORKSPACE)
+ * Load manifest from DOCFU_ROOT/manifest.json
  * @returns {Object} Manifest object or empty object if not found
  */
-export function loadManifest(workspace = getWorkspace()) {
-  const manifestPath = join(workspace, 'manifest.json')
+export function loadManifest() {
+  const root = getRoot()
+  const manifestPath = join(root, 'manifest.json')
+
   if (!existsSync(manifestPath)) return {}
 
   try {
@@ -33,12 +35,13 @@ export function loadManifest(workspace = getWorkspace()) {
 }
 
 /**
- * Load docfu.yml config from workspace
- * @param {string} [workspace] - Optional workspace path (defaults to DOCFU_WORKSPACE)
+ * Load config from DOCFU_ROOT/config.yml
  * @returns {Object} Config object or empty object if not found
  */
-export function loadConfig(workspace = getWorkspace()) {
-  const configPath = join(workspace, 'docfu.yml')
+export function loadConfig() {
+  const root = getRoot()
+  const configPath = join(root, 'config.yml')
+
   if (!existsSync(configPath)) return {}
 
   try {

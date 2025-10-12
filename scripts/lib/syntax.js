@@ -6,15 +6,15 @@
 import {hasJSXSyntax} from './jsx.js'
 import {CONVERTIBLE_MARKDOWN_EXTENSIONS, convertExtension} from './patterns.js'
 
-const MARKDOC_TAG_PATTERN = /\{%\s+\w+[^%]*%\}/
-const HEADING_BADGE_PATTERN = /^#{1,6}\s+.*:badge\[[^\]]*\]/m
+const MARKDOC_TAG = /\{%\s+\w+[^%]*%\}/
+const HEADING_BADGE = /^#{1,6}\s+.*:badge\[[^\]]*\]/m
 
 /**
  * Check if content uses Markdoc syntax or needs markdoc conversion
  * @param {string} content - The content to check
  * @returns {boolean} - True if content contains or needs Markdoc syntax
  */
-export const usesMarkdocSyntax = content => MARKDOC_TAG_PATTERN.test(content) || HEADING_BADGE_PATTERN.test(content)
+export const usesMarkdocSyntax = content => MARKDOC_TAG.test(content) || HEADING_BADGE.test(content)
 
 /**
  * Detect the syntax type used in markdown content

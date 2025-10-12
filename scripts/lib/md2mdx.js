@@ -7,8 +7,31 @@ import {unified} from 'unified'
 import remarkParse from 'remark-parse'
 import remarkMdx from 'remark-mdx'
 import {visit} from 'unist-util-visit'
+import {readdirSync, existsSync} from 'fs'
+import {join, dirname} from 'path'
+import {fileURLToPath} from 'url'
 import {extractJSXComponents} from './jsx.js'
-import {DOCFU_COMPONENTS} from './components.js'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+/**
+ * Discover DocFu-provided components by scanning src/components/
+ * @returns {Array<string>} Array of DocFu component names
+ */
+function getDocfuComponents() {
+  try {
+    const packageRoot = join(__dirname, '../..')
+    const componentsDir = join(packageRoot, 'src/components')
+
+    if (!existsSync(componentsDir)) return []
+
+    return readdirSync(componentsDir)
+      .filter(f => f.endsWith('.astro'))
+      .map(f => f.replace('.astro', ''))
+  } catch (error) {
+    return []
+  }
+}
 
 /**
  * Extract component names from existing import statements (fallback method)
@@ -121,7 +144,7 @@ function extractExistingImports(content) {
  * })
  * // Returns:
  * // import MyCustom from '../../components/MyCustom.astro'
- * // import InlineIcon from '../engine/src/components/InlineIcon.astro'
+ * // import InlineIcon from '../../components/InlineIcon.astro'
  * // import { Card } from '@astrojs/starlight/components'
  * //
  * // <Card /><InlineIcon /><MyCustom />
@@ -137,7 +160,7 @@ export function process(filename, content, options = {}) {
 
   const {customComponents = []} = options
   const customNames = new Set(customComponents.map(c => c.name))
-  const docfuNames = new Set(DOCFU_COMPONENTS)
+  const docfuNames = new Set(getDocfuComponents())
 
   const custom = needsImport.filter(name => customNames.has(name))
   const docfu = needsImport.filter(name => docfuNames.has(name))
@@ -151,7 +174,7 @@ export function process(filename, content, options = {}) {
   }
 
   for (const name of docfu) {
-    imports += `import ${name} from '../engine/src/components/${name}.astro'\n`
+    imports += `import ${name} from '../../components/${name}.astro'\n`
   }
 
   if (starlight.length > 0) {

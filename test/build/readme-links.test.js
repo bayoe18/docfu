@@ -28,7 +28,7 @@ Links to READMEs:
       'api/README.md': '---\ntitle: API\n---\n\n# API',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist], {
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root], {
       env: {DOCFU_ENGINE: paths.engine},
     })
 
@@ -57,7 +57,7 @@ Links to READMEs:
       'guides/README.md': '---\ntitle: Guides\n---\n\n# Guides Landing',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist], {
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root], {
       env: {DOCFU_ENGINE: paths.engine},
     })
 
@@ -87,7 +87,7 @@ Navigation:
       'guides/README.md': '---\ntitle: Guides\n---\n\n# Guides',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist], {
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root], {
       env: {DOCFU_ENGINE: paths.engine},
     })
 

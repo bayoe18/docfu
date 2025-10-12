@@ -6,8 +6,7 @@
 #
 # Configuration sections:
 # - site: Site name, URL, and theme (required in root docfu.yml)
-# - workspace: Build workspace directory (default: .docfu/workspace)
-# - dist: Build output directory (default: .docfu/dist)
+# - root: Root directory for workspace and build output (default: .docfu)
 # - assets: Static assets directory (default: assets)
 # - components: Custom components directory (default: components)
 # - exclude: Files/directories to omit from processing
@@ -19,6 +18,12 @@
 # - Configs are processed in alphabetical order
 # - More specific configurations override less specific ones
 # - Avoid duplicate configuration entries to prevent conflicts
+#
+# Build directories:
+# - Root directory (default: .docfu) can be configured via --root CLI option or root: in config
+# - Workspace: <root>/workspace (Astro project, auto-managed)
+# - Build output: <root>/dist (static site output)
+# - Config/manifest: <root>/config.yml and <root>/manifest.json
 # ==============================================================================
 
 # Site Configuration (REQUIRED, configure in root docfu.yml)
@@ -27,13 +32,10 @@ site:
   url: https://docs.example.com
   theme: nova # OPTIONAL - 'nova' (default, modern) or 'starlight' (classic)
 
-# Temporary workspace for processing (OPTIONAL, configure in root docfu.yml)
-# Defaults to '.docfu/workspace' (relative to current working directory) if not specified
-workspace: .docfu/workspace
-
-# Final build output directory (OPTIONAL, configure in root docfu.yml)
-# Defaults to '.docfu/dist' (relative to current working directory) if not specified
-dist: .docfu/dist
+# Root directory (OPTIONAL, configure in root docfu.yml)
+# Location where DocFu creates workspace and build directories
+# Priority: CLI --root flag > root: config > DOCFU_ROOT env var > .docfu (default)
+# root: .docfu
 
 # Static assets directory in source (OPTIONAL, configure in root docfu.yml)
 # Images, fonts, CSS files, and other static files are bundled into the final site
@@ -47,31 +49,30 @@ assets: assets
 # Astro components for use in markdown files (auto-imported for MDX, registered as tags for Markdoc)
 # Defaults to '<source>/components' if not specified
 components: components
-
 # Files/directories to exclude from processing (OPTIONAL, configure anywhere)
 # Files matching these patterns are not processed or built at all
 # Supports: file paths, directory paths, glob patterns (*, ?, [abc])
-exclude:
-  - archive
-  - backup
-  - tmp
+# exclude:
+#   - archive
+#   - backup
+#   - tmp
 
 # Files/directories to exclude from search index (OPTIONAL, configure anywhere)
 # Files matching these patterns are built and accessible via direct link,
 # but excluded from search results (pagefind: false added to frontmatter)
 # Supports: file paths, directory paths, glob patterns (*, ?, [abc])
-unlisted:
-  - drafts
+# unlisted:
+#   - drafts
 
 # Sidebar navigation structure (OPTIONAL, configure anywhere)
 # - Labels come from page frontmatter title or filename (title-cased)
 # - Same file can appear in multiple groups
 # - Supports both grouped and ungrouped items
 # - Omit sidebar config to auto-generate from content structure
-sidebar:
-  # Ungrouped items appear at sidebar root
-  - file: index.md
-    label: Home
+# sidebar:
+#   # Ungrouped items appear at sidebar root
+#   - file: index.md
+#     label: Home
 #   - group: Getting Started
 #     items:
 #       - quickstart.md

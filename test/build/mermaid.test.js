@@ -28,7 +28,7 @@ graph TD
 This is a flowchart diagram.`,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
@@ -58,11 +58,11 @@ sequenceDiagram
 This file uses the .mdoc extension directly.`,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
-    const workspaceFile = join(paths.workspace, 'sequence.mdoc')
+    const workspaceFile = join(paths.workspace, 'src/content/docs/sequence.mdoc')
     assert.ok(readFileSync(workspaceFile, 'utf-8'), 'Should convert to .mdoc')
 
     const html = readFileSync(join(paths.dist, 'sequence/index.html'), 'utf-8')
@@ -99,7 +99,7 @@ pie title Pets
 Two different diagram types.`,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
@@ -142,7 +142,7 @@ def greet():
 \`\`\``,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 
@@ -176,7 +176,7 @@ stateDiagram-v2
 \`\`\``,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed')
 

@@ -71,26 +71,17 @@ export function runCommand(cmd, args, options = {}) {
  * Get resolved paths from options and source
  * Priority: CLI flags > docfu.yml > environment variables > defaults
  * @param {string} source - Source documentation directory path
- * @param {Object} options - CLI options object with workspace and dist properties
- * @returns {{source: string, workspace: string, dist: string, engine?: string}} Resolved absolute paths
+ * @param {Object} options - CLI options object with root property
+ * @returns {{source: string, root: string, workspace: string, dist: string}} Resolved absolute paths
  * @example
- * const paths = getResolvedPaths('./docs', {workspace: '.docfu/workspace'})
- * // {source: '/abs/path/docs', workspace: '/abs/path/.docfu/workspace', dist: '/abs/path/.docfu/dist'}
+ * const paths = getResolvedPaths('./docs', {root: '.docfu'})
+ * // {source: '/abs/path/docs', root: '/abs/path/.docfu', workspace: '/abs/path/.docfu/workspace', dist: '/abs/path/.docfu/dist'}
  */
 export function getResolvedPaths(source, options) {
   const config = loadConfig()
 
   const sourceDir = expandTilde(source || process.env.DOCFU_SOURCE)
-  const workspaceDir = expandTilde(
-    options.workspace || config?.workspace || process.env.DOCFU_WORKSPACE || '.docfu/workspace'
-  )
-  const distDir = expandTilde(options.dist || config?.dist || process.env.DOCFU_DIST || '.docfu/dist')
-
-  // Derive engine from workspace: sibling directory named 'engine'
-  // workspace: .docfu/workspace → engine: .docfu/engine
-  // workspace: .docfu/test/foo/workspace → engine: .docfu/test/foo/engine
-  const workspaceResolved = resolve(workspaceDir)
-  const engineDir = join(dirname(workspaceResolved), 'engine')
+  const rootDir = expandTilde(options.root || config?.root || process.env.DOCFU_ROOT || '.docfu')
 
   if (!sourceDir) {
     console.error(theme.danger('✗ Error: No source documentation directory specified'))
@@ -99,24 +90,24 @@ export function getResolvedPaths(source, options) {
     process.exit(1)
   }
 
+  const resolvedRoot = resolve(rootDir)
+
   return {
     source: resolve(sourceDir),
-    workspace: resolve(workspaceDir),
-    dist: resolve(distDir),
-    engine: resolve(engineDir),
+    root: resolvedRoot,
+    workspace: join(resolvedRoot, 'workspace'),
+    dist: join(resolvedRoot, 'dist'),
   }
 }
 
 /**
  * Set environment variables for child processes
- * @param {{source: string, workspace: string, dist: string, engine: string}} paths - Resolved absolute paths
+ * @param {{source: string, root: string, workspace: string, dist: string}} paths - Resolved absolute paths
  * @example
- * setEnvVars({source: '/abs/docs', workspace: '/abs/.docfu/workspace', dist: '/abs/.docfu/dist', engine: '/abs/.docfu/engine'})
- * // Sets DOCFU_SOURCE, DOCFU_WORKSPACE, DOCFU_DIST, DOCFU_ENGINE env vars
+ * setEnvVars({source: '/abs/docs', root: '/abs/.docfu', workspace: '/abs/.docfu/workspace', dist: '/abs/.docfu/dist'})
+ * // Sets DOCFU_SOURCE and DOCFU_ROOT env vars
  */
 export function setEnvVars(paths) {
   process.env.DOCFU_SOURCE = paths.source
-  process.env.DOCFU_WORKSPACE = paths.workspace
-  process.env.DOCFU_DIST = paths.dist
-  process.env.DOCFU_ENGINE = paths.engine
+  process.env.DOCFU_ROOT = paths.root
 }

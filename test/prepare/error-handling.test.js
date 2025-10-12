@@ -17,7 +17,7 @@ describe('Error Handling', () => {
     const invalidPath = join(paths.source, 'does-not-exist')
 
     try {
-      await runCLI(['prepare', invalidPath, '--workspace', paths.workspace])
+      await runCLI(['prepare', invalidPath, '--root', paths.root])
       assert.fail('Should have rejected with invalid path')
     } catch (stderr) {
       assert.ok(stderr.includes('not found') || stderr.includes('ENOENT'), 'Should show error about missing path')
@@ -28,7 +28,7 @@ describe('Error Handling', () => {
     const paths = getTestPaths('error-empty-dir', import.meta.url)
     mkdirSync(paths.source, {recursive: true})
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Empty directory should succeed (no files to process)')
     assert.ok(existsSync(paths.workspace), 'Should create workspace even if empty')
@@ -42,7 +42,7 @@ describe('Error Handling', () => {
     writeFileSync(join(paths.source, 'index.md'), '# Test\n\nContent')
 
     try {
-      await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+      await runCLI(['prepare', paths.source, '--root', paths.root])
       assert.ok(existsSync(paths.workspace), 'Should still create workspace with defaults')
     } catch (stderr) {
       assert.ok(stderr.includes('unexpected end') || stderr.includes('YAML'), 'Should show YAML error')
@@ -56,12 +56,12 @@ describe('Error Handling', () => {
       'no-title.md': 'This file has no H1 header.\n\nJust regular content.',
     })
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Should succeed even without H1')
 
     const {readFileSync} = await import('fs')
-    const processed = readFileSync(join(paths.workspace, 'no-title.md'), 'utf-8')
+    const processed = readFileSync(join(paths.workspace, 'src/content/docs/no-title.md'), 'utf-8')
     assert.ok(processed.includes('title:'), 'Should have title in frontmatter')
     assert.ok(processed.includes('No Title'), 'Should generate title from filename')
   })
@@ -73,10 +73,10 @@ describe('Error Handling', () => {
       'empty.md': '',
     })
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Empty file should not cause failure')
-    assert.ok(existsSync(join(paths.workspace, 'empty.md')), 'Empty file should be processed')
+    assert.ok(existsSync(join(paths.workspace, 'src/content/docs/empty.md')), 'Empty file should be processed')
   })
 
   it('should handle file with only frontmatter', async () => {
@@ -86,10 +86,10 @@ describe('Error Handling', () => {
       'only-fm.md': '---\ntitle: Test\n---\n',
     })
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'File with only frontmatter should succeed')
-    assert.ok(existsSync(join(paths.workspace, 'only-fm.md')), 'Should process file')
+    assert.ok(existsSync(join(paths.workspace, 'src/content/docs/only-fm.md')), 'Should process file')
   })
 
   it('should handle malformed frontmatter in markdown', async () => {
@@ -100,8 +100,8 @@ describe('Error Handling', () => {
     })
 
     try {
-      await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
-      assert.ok(existsSync(join(paths.workspace, 'bad-fm.md')), 'Should still process file')
+      await runCLI(['prepare', paths.source, '--root', paths.root])
+      assert.ok(existsSync(join(paths.workspace, 'src/content/docs/bad-fm.md')), 'Should still process file')
     } catch (stderr) {
       assert.ok(true, 'Failed with malformed frontmatter as expected')
     }
@@ -114,12 +114,12 @@ describe('Error Handling', () => {
       'multi-h1.md': '# First Title\n\nContent here.\n\n# Second Title\n\nMore content.',
     })
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Multiple H1s should not cause failure')
 
     const {readFileSync} = await import('fs')
-    const processed = readFileSync(join(paths.workspace, 'multi-h1.md'), 'utf-8')
+    const processed = readFileSync(join(paths.workspace, 'src/content/docs/multi-h1.md'), 'utf-8')
     assert.ok(processed.includes('title: First Title'), 'Should use first H1 as title')
   })
 })

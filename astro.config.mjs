@@ -8,12 +8,12 @@ import starlightHeadingBadges from 'starlight-heading-badges'
 import starlightLlmsTxt from 'starlight-llms-txt'
 import starlightThemeNova from 'starlight-theme-nova'
 import {getStarlightOverrides} from './src/utils/components.js'
-import {getWorkspace, loadConfig, loadManifest} from './src/utils/docfu.js'
+import {loadConfig, loadManifest} from './src/utils/docfu.js'
 import {buildSidebar} from './src/utils/sidebar.js'
 
-const workspace = getWorkspace()
-const config = loadConfig(workspace)
-const manifest = loadManifest(workspace)
+// Load manifest from DOCFU_ROOT/manifest.json
+const manifest = loadManifest()
+const config = manifest.config || {}
 const name = config.site?.name || 'Documentation'
 const site = config.site?.url || 'https://example.com'
 const theme = config.site?.theme || 'nova'
@@ -21,26 +21,23 @@ const sidebar = buildSidebar(manifest, config)
 const userComponents = manifest.components?.items || []
 const components = getStarlightOverrides(userComponents)
 
-// Map theme names to their plugin functions
 const themes = {
   nova: starlightThemeNova(),
   starlight: null,
 }
 
-// Build customCss array: DocFu base styles + auto-discovered CSS from assets/
-const userCss = (manifest.css?.items || []).map(item => `${workspace}/${item.path}`)
+// Build customCss array: DocFu base styles + auto-discovered CSS from public/
+const userCss = (manifest.css?.items || []).map(item => `./public/${item.path}`)
 const customCss = ['./src/styles/docfu.css', ...userCss]
 
 export default defineConfig({
-  root: process.env.DOCFU_ENGINE || '.',
-  outDir: process.env.DOCFU_DIST || '.docfu/dist',
-  cacheDir: `${workspace}/.astro`,
+  outDir: '../dist',
+  cacheDir: '.astro',
   site,
   trailingSlash: 'never',
 
-  // Store Vite cache in workspace to avoid conflicts when node_modules is symlinked (npx compatibility)
   vite: {
-    cacheDir: `${workspace}/.vite`,
+    cacheDir: '.vite',
   },
 
   // Integration order matters: Astro processes sequentially (preprocessors → processors → renderers)

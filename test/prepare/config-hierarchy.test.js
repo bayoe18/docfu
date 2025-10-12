@@ -27,13 +27,13 @@ describe('Configuration Hierarchy', () => {
     writeFileSync(join(paths.source, 'guides', 'guide.md'), '# Guide')
     writeFileSync(join(paths.source, 'guides', 'temp.md'), '# Temp')
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Should succeed with hierarchical config')
 
-    const configYml = readFileSync(join(paths.workspace, 'docfu.yml'), 'utf-8')
-    assert.ok(configYml.includes('Main Site'), 'Should have site config from root')
-    assert.ok(configYml.includes('drafts') || configYml.includes('temp.md'), 'Should merge exclude patterns')
+    const config = readFileSync(join(paths.root, 'config.yml'), 'utf-8')
+    assert.ok(config.includes('Main Site'), 'Should have site config from root')
+    assert.ok(config.includes('drafts') || config.includes('temp.md'), 'Should merge exclude patterns')
   })
 
   it('should inherit site config from root only', async () => {
@@ -46,13 +46,13 @@ describe('Configuration Hierarchy', () => {
     writeFileSync(join(paths.source, 'api', 'docfu.yml'), 'site:\n  name: API Docs\n  url: https://api.com')
     writeFileSync(join(paths.source, 'api', 'reference.md'), '# API')
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Should succeed')
 
-    const configYml = readFileSync(join(paths.workspace, 'docfu.yml'), 'utf-8')
-    assert.ok(configYml.includes('name: Docs'), 'Should use root site config')
-    assert.ok(!configYml.includes('API Docs'), 'Should not use subdirectory site config')
+    const config = readFileSync(join(paths.root, 'config.yml'), 'utf-8')
+    assert.ok(config.includes('name: Docs'), 'Should use root site config')
+    assert.ok(!config.includes('API Docs'), 'Should not use subdirectory site config')
   })
 
   it('should handle exclude patterns at different levels', async () => {
@@ -68,12 +68,15 @@ describe('Configuration Hierarchy', () => {
     writeFileSync(join(paths.source, 'guides', 'guide.md'), '# Guide')
     writeFileSync(join(paths.source, 'guides', 'notes.tmp.md'), '# Temp Notes')
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Should succeed')
-    assert.ok(!existsSync(join(paths.workspace, 'drafts')), 'Should exclude drafts directory')
-    assert.ok(existsSync(join(paths.workspace, 'guides', 'guide.md')), 'Should include guide')
-    assert.ok(!existsSync(join(paths.workspace, 'guides', 'notes.tmp.md')), 'Should exclude .tmp.md files')
+    assert.ok(!existsSync(join(paths.workspace, 'src/content/docs/drafts')), 'Should exclude drafts directory')
+    assert.ok(existsSync(join(paths.workspace, 'src/content/docs/guides/guide.md')), 'Should include guide')
+    assert.ok(
+      !existsSync(join(paths.workspace, 'src/content/docs/guides/notes.tmp.md')),
+      'Should exclude .tmp.md files'
+    )
   })
 
   it('should support frontmatter defaults in config', async () => {
@@ -89,11 +92,11 @@ describe('Configuration Hierarchy', () => {
     )
     writeFileSync(join(paths.source, 'api', 'reference.md'), '# API Reference\n\nContent')
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Should succeed')
 
-    const processed = readFileSync(join(paths.workspace, 'api', 'reference.md'), 'utf-8')
+    const processed = readFileSync(join(paths.workspace, 'src/content/docs/api/reference.md'), 'utf-8')
     assert.ok(processed.includes('sidebar:'), 'Should apply frontmatter defaults')
     assert.ok(processed.includes('badge:'), 'Should include badge configuration')
   })
@@ -117,16 +120,16 @@ describe('Configuration Hierarchy', () => {
     writeFileSync(join(paths.source, 'index.md'), '# Home\n\nOriginal content')
     writeFileSync(join(paths.source, 'other.md'), '# Other\n\nContent')
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Should succeed')
 
-    const indexContent = readFileSync(join(paths.workspace, 'index.md'), 'utf-8')
-    assert.ok(indexContent.includes('Custom Home Title'), 'Should apply file-specific title')
-    assert.ok(indexContent.includes('Custom description'), 'Should apply file-specific description')
+    const index = readFileSync(join(paths.workspace, 'src/content/docs/index.md'), 'utf-8')
+    assert.ok(index.includes('Custom Home Title'), 'Should apply file-specific title')
+    assert.ok(index.includes('Custom description'), 'Should apply file-specific description')
 
-    const otherContent = readFileSync(join(paths.workspace, 'other.md'), 'utf-8')
-    assert.ok(otherContent.includes('title: Other'), 'Other file should use default title from H1')
+    const other = readFileSync(join(paths.workspace, 'src/content/docs/other.md'), 'utf-8')
+    assert.ok(other.includes('title: Other'), 'Other file should use default title from H1')
   })
 
   it('should handle missing site config gracefully', async () => {
@@ -136,12 +139,15 @@ describe('Configuration Hierarchy', () => {
     writeFileSync(join(paths.source, 'docfu.yml'), 'exclude:\n  - drafts')
     writeFileSync(join(paths.source, 'index.md'), '# Home')
 
-    const {exitCode, stderr} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode, stderr} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     if (exitCode !== 0) {
       assert.ok(stderr.includes('site') || stderr.includes('required'), 'Should mention missing site config')
     } else {
-      assert.ok(existsSync(join(paths.workspace, 'index.md')), 'Should process files even without full config')
+      assert.ok(
+        existsSync(join(paths.workspace, 'src/content/docs/index.md')),
+        'Should process files even without full config'
+      )
     }
   })
 
@@ -166,11 +172,11 @@ author: Jane Doe
 Content here.`
     )
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Should succeed')
 
-    const processed = readFileSync(join(paths.workspace, 'guide.md'), 'utf-8')
+    const processed = readFileSync(join(paths.workspace, 'src/content/docs/guide.md'), 'utf-8')
 
     // Verify user-defined frontmatter is preserved
     assert.ok(processed.includes('title: User Defined Title'), 'Should preserve user-defined title')

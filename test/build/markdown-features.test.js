@@ -33,7 +33,7 @@ echo "hello world"
 \`\`\``,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed with code blocks')
 
@@ -58,7 +58,7 @@ echo "hello world"
 More content here.`,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed with tables')
 
@@ -92,7 +92,7 @@ Task list:
 - [x] Completed item`,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed with lists')
 
@@ -114,7 +114,7 @@ Task list:
       'guide.md': '# Guide\n\n[Back to home](./index.md)',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed with links')
 
@@ -143,7 +143,7 @@ Content about usage.
 [Jump to Installation](#installation)`,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed with anchor links')
 
@@ -167,7 +167,7 @@ Regular content.
 > **Note:** Important information`,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed with blockquotes')
 
@@ -183,7 +183,7 @@ Regular content.
       'inline.md': '# Code\n\nUse the `console.log()` function.\n\nThe variable `myVar` is important.',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed with inline code')
 
@@ -205,7 +205,7 @@ You can also use __bold__ and _italic_.
 And ***bold italic*** text.`,
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed with emphasis')
 
@@ -222,7 +222,7 @@ And ***bold italic*** text.`,
       'hr.md': '# Sections\n\nFirst section.\n\n---\n\nSecond section.\n\n***\n\nThird section.',
     })
 
-    const {exitCode} = await runCLI(['build', paths.source, '--workspace', paths.workspace, '--dist', paths.dist])
+    const {exitCode} = await runCLI(['build', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Build should succeed with horizontal rules')
 
@@ -237,11 +237,11 @@ And ***bold italic*** text.`,
       'images.md': '# Images\n\n![Logo](./logo.png)\n\n![Alt text](https://example.com/image.jpg)',
     })
 
-    const {exitCode} = await runCLI(['prepare', paths.source, '--workspace', paths.workspace])
+    const {exitCode} = await runCLI(['prepare', paths.source, '--root', paths.root])
 
     assert.strictEqual(exitCode, 0, 'Prepare should succeed with image references')
 
-    const processed = readFileSync(join(paths.workspace, 'images.md'), 'utf-8')
+    const processed = readFileSync(join(paths.workspace, 'src/content/docs/images.md'), 'utf-8')
     assert.ok(processed.includes('![Logo](./logo.png)'), 'Should preserve image syntax')
     assert.ok(processed.includes('![Alt text]'), 'Should preserve alt text')
   })

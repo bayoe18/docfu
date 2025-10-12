@@ -2,17 +2,42 @@
  * Component utilities
  *
  * This module contains component-related utilities including:
+ * - DocFu component discovery
  * - Starlight component discovery and filtering
  * - Component prop extraction
  */
 
 import {existsSync, readdirSync, readFileSync} from 'fs'
 import {createRequire} from 'module'
-import {join} from 'path'
+import {join, dirname} from 'path'
+import {fileURLToPath} from 'url'
 
 const require = createRequire(import.meta.url)
 
 let starlightThemeComponents = null
+let docfuComponents = null
+
+/**
+ * Dynamically discover DocFu-provided components by scanning src/components/
+ * @returns {Array<string>} Array of DocFu component names
+ */
+export function getDocfuComponents() {
+  if (docfuComponents) return docfuComponents
+
+  try {
+    const __dirname = dirname(fileURLToPath(import.meta.url))
+    const componentsDir = join(__dirname, '../components')
+
+    if (!existsSync(componentsDir)) return []
+
+    const files = readdirSync(componentsDir)
+    docfuComponents = files.filter(f => f.endsWith('.astro')).map(f => f.replace('.astro', ''))
+
+    return docfuComponents
+  } catch (error) {
+    return []
+  }
+}
 
 /**
  * Dynamically discover Starlight theme components (for overriding)
@@ -67,7 +92,7 @@ export function getStarlightOverrides(components) {
   const overrides = {}
   for (const component of components) {
     if (starlightThemeComponents.includes(component.name)) {
-      overrides[component.name] = `../workspace/${component.path}`
+      overrides[component.name] = `../workspace/src/components/${component.path}`
     }
   }
 
@@ -117,7 +142,7 @@ export function extractPropsFromComponent(componentPath) {
     const propRegex = /@prop\s+\{[^}]+\}\s+(\[)?(\w+)(\])?/g
     let match
     while ((match = propRegex.exec(frontmatter)) !== null) {
-      jsdocProps.push(match[2]) // match[2] is the prop name
+      jsdocProps.push(match[2])
     }
 
     if (jsdocProps.length > 0) return jsdocProps

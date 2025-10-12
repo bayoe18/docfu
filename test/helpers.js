@@ -13,17 +13,20 @@ import {fileURLToPath} from 'url'
  * Generate unique isolated paths for a test
  * @param {string} testName - Name of the test (e.g., 'build-prepare')
  * @param {string} importMetaUrl - import.meta.url from calling test file
- * @returns {{source: string, workspace: string, dist: string, engine: string}}
+ * @returns {{source: string, root: string, workspace: string, dist: string, engine: string}}
  */
 export const getTestPaths = (testName, importMetaUrl) => {
   const file = basename(fileURLToPath(importMetaUrl), '.test.js')
   const dir = basename(dirname(fileURLToPath(importMetaUrl)))
+  const base = `.docfu/test/${dir}/${file}/${testName}`
+  const root = `${base}-root`
 
   return {
-    source: `.docfu/test/${dir}/${file}/${testName}/source`,
-    workspace: `.docfu/test/${dir}/${file}/${testName}/workspace`,
-    dist: `.docfu/test/${dir}/${file}/${testName}/dist`,
-    engine: `.docfu/test/${dir}/${file}/${testName}/engine`,
+    source: `${base}-source`,
+    root,
+    workspace: `${root}/workspace`,
+    dist: `${root}/dist`,
+    engine: `${root}/engine`,
   }
 }
 
